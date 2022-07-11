@@ -248,7 +248,7 @@ def read_kreuzer_skarke_file(
                 # NOTE: handle condition where we are reading a header other than the first
                 #       i.e. there should be a matrix_string and header already defined
                 if matrix_string != '':                                        
-                    matrix = parse_matrix(header, matrix_string, labels)
+                    matrix = parse_matrix_string(header, matrix_string, labels)
                     matrices.append(matrix)
                 
                 # NOTE: no matter what append new header to storage variable
@@ -268,9 +268,9 @@ def read_kreuzer_skarke_file(
                 matrix_string += line
         
         # NOTE: since matricies come after headers, we should have one last matrix to append
-        if len(headers) > len(matricies):
-            assert len(headers) == len(matricies) + 1
-            matrix = parse_matrix(header, matrix_string, labels)
+        if len(headers) > len(matrices):
+            assert len(headers) == len(matrices) + 1
+            matrix = parse_matrix_string(header, matrix_string, labels)
             matrices.append(matrix)
            
     return headers, matrices
