@@ -386,5 +386,5 @@ def preprocessing_pipeline(
     return X, y 
 
 if __name__ == '__main__':
-    # unzip(RAW_FILE, UNZIPPED_FILE)
+    unzip(RAW_FILE, UNZIPPED_FILE)
     X, y = preprocessing_pipeline(UNZIPPED_FILE, save=True)
