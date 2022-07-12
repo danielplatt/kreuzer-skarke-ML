@@ -1,3 +1,5 @@
 *.idea/
 data/raw/v26
+data/raw/v26_*.npy
+
 .ipynb_checkpoints
