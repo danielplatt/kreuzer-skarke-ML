@@ -2,5 +2,7 @@
 data/raw/v26
 data/raw/v26_*.npy
 
+data/*.pickle
+
 .ipynb_checkpoints
 **/__pycache__/**
