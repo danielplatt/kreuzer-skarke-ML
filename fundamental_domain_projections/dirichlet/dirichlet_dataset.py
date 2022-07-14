@@ -8,7 +8,7 @@ from fundamental_domain_projections.matrix_permutation_auxiliaryfunctions import
 
 class DirichletDataset():
     def __init__(self, X=None, Y=None, matrix_dim=None, x0=None, gen_name='neighbourtranspositions', seeded_ascent=False,
-                 save_proj=False, load_proj=False, file_name=None):
+                 save_proj=False, load_proj=False, file_name=None, from_permuted=False, cutoff=-1):
         """
         :param X: list/array of matrices to be projected
         :param Y: independent variables
@@ -20,6 +20,8 @@ class DirichletDataset():
         :param load_proj: whether to load pre-saved projections as projection computation is expensive
         :param file_name: file_name used to save/load projections. Please note that all projections are
                           saved in/loaded from ../../data/raw directory
+        :param from_permuted: whether a random permutation should be applied to the matrix before applying the Dirichlet projection
+        :param cutoff: process how many matrices?
         """
         super().__init__()
         self.X = X
@@ -31,6 +33,8 @@ class DirichletDataset():
         self.save_proj = save_proj
         self.load_proj = load_proj
         self.file_name = file_name
+        self.from_permuted = from_permuted
+        self.cutoff = cutoff
         self._check_init()
         if load_proj: self._load_proj()
         else:
@@ -110,7 +114,11 @@ class DirichletDataset():
     def get_projection(self, X):
         X_proj = []
         print('Starting Dirichlet projection calculation...')
-        for x in tqdm(X):
+        for x in tqdm(X[:self.cutoff]):
+            if self.from_permuted:
+                permuted_x = np.random.permutation(x)
+                double_permuted_x = np.transpose(np.random.permutation(np.transpose(permuted_x)))
+                x = double_permuted_x
             x_proj = self.gradient_ascent_seeded(x, self.x0) if self.seeded_ascent else self.gradient_ascent(x, self.x0)
             X_proj.append(x_proj)
         print('...finished Dirichlet projection calculation.')

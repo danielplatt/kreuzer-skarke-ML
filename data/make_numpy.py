@@ -374,7 +374,7 @@ def preprocessing_pipeline(
 
         if apply_random_permutation:
             rot_mat = np.random.permutation(matrix)
-            double_rot_mat = np.transpose(np.random.permutation(np.transpose(matrix)))
+            double_rot_mat = np.transpose(np.random.permutation(np.transpose(rot_mat)))
             matrix = double_rot_mat
         headers.append(header)
         matrices.append(matrix)
