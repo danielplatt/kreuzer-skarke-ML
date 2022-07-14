@@ -2,6 +2,7 @@ import numpy as np
 import os
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
+from fundamental_domain_projections.dirichlet.dirichlet_dataset import DirichletDataset
 
 
 def get_nn():
@@ -31,12 +32,19 @@ def main():
         X = np.load(fx, allow_pickle=True)
         y = np.load(fy, allow_pickle=True)
 
+    # if you want to take Dirichlet dataset
+    diric_proj = DirichletDataset(X=X, matrix_dim=(4, 26), x0='Daniel', seeded_ascent=False, from_permuted=True,
+                                  # save_proj=True, file_name='dirichlet_from_permuted',
+                                  cutoff=-1)
+    X = diric_proj.X_proj
+    y = y[:-1]
+
     X_new = {}
     y_new = {}
     X_new['train'], X_new['test'], y_new['train'], y_new['test'] = train_test_split(X, y, test_size=0.5)
     model.fit(
         X_new['train'], y_new['train'],
-        epochs=20,
+        epochs=200,
         validation_data=(X_new['test'], y_new['test']),
     )
 
