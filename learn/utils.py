@@ -116,7 +116,7 @@ def generate_dataloaders(
     valid_loader = DataLoader(valid_set, batch_size=batch_size, shuffle=True)
     return train_loader, valid_loader
 
-import matplotlib.pylot as plt, matplotlib.patches as mpatches
+import matplotlib.pyplot as plt, matplotlib.patches as mpatches
 import matplotlib
 def pretty_scatter_plot(
     x:Union[list[float], np.ndarray], 
