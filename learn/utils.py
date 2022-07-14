@@ -17,6 +17,7 @@ class FundamentalDomainProjectionDataset(Dataset):
         extraction_key:str='h_1,1',
         num_classes:int=None,
         use_one_hot:bool=False,
+        apply_random_permutation:bool=False,
         transformation:function=fundamental_domain_projection,
         use_cuda:bool=True,
         logger:logging.Logger=None,
@@ -33,6 +34,9 @@ class FundamentalDomainProjectionDataset(Dataset):
             
             use_one_hot (bool): whether or not to return `y` as a one-hot encoded vector or as its class label
             
+            apply_random_permutation (bool): Whether or not to randomly permute each matrix rather than use
+                than use FDP. Defaults to `False`.
+
             transformation (function): A transformation to apply to `X`. Defaults to 
                 `fundamental_domain_projections.example1.fundamental_domain_projection`.
 
@@ -53,13 +57,14 @@ class FundamentalDomainProjectionDataset(Dataset):
                 f'NOTE: extraction key ({extraction_key}) is specified. Only this value will be returned as `y`.'
             )
             
-        X, y = preprocessing_pipeline(file, extraction_key=extraction_key)
+        X, y = preprocessing_pipeline(file, extraction_key=extraction_key, apply_random_permutation=apply_random_permutation)
         
         if logger: 
             logger.info(f'Running fundamental_domain_projection')
             logger.info(f'NOTE: this is only run once! Not once per epoch.')
-                
-        X = np.array(list(map(transformation, X)))
+
+        if transformation is not None:        
+            X = np.array(list(map(transformation, X)))
         
         self.X = X
         self.y = y
