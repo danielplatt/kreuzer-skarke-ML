@@ -305,7 +305,8 @@ def preprocessing_pipeline(
     extraction_key:str = 'h_1,1',
     labels:list[str] = KREUZER_SKARKE_DESCRIPTION_HEADER_LABELS,
     save:bool = False,
-    load:bool = True
+    load:bool = True,
+    apply_random_permutation:bool = False
 ) -> (np.ndarray, np.ndarray):
     '''
     Utility function to extract a labeled value from all headers in a list.
@@ -328,6 +329,8 @@ def preprocessing_pipeline(
         save (bool): Whether or not to save final `matricies` and `values`. Defaults to `False`.
         
         load (bool): Whether or not ot try and load final results. Defaults to `True`.
+
+        apply_random_permutation (bool): Whether to apply a random row and column permutation to each input matrix.
             
     Returns:
     ----------
@@ -336,10 +339,14 @@ def preprocessing_pipeline(
         values (np.ndarray): A list of the headers from the provided `file` or a list of just the value
             specified by `extraction_key`.         
     '''
+    suffix = ''
+    if apply_random_permutation:
+        suffix = 'permuted'
+
     if load:
         file = os.path.splitext(file)[0]
-        if os.path.isfile(f'{file}_X.npy') and os.path.isfile(f'{file}_y.npy'):
-            with open(f'{file}_X.npy', 'rb') as fx, open (f'{file}_y.npy', 'rb') as fy:
+        if os.path.isfile(f'{file}_X{suffix}.npy') and os.path.isfile(f'{file}_y.npy'):
+            with open(f'{file}_X{suffix}.npy', 'rb') as fx, open (f'{file}_y.npy', 'rb') as fy:
                 X = np.load(fx, allow_pickle=True)
                 y = np.load(fy, allow_pickle=True)
                 return X, y
@@ -364,7 +371,10 @@ def preprocessing_pipeline(
             matrix = matrix.T
             header[n_rows_label] = c
             header[n_cols_label] = r
-        
+
+        if apply_random_permutation:
+            np.random.permutation(matrix)
+            np.transpose(np.random.permutation(np.transpose(matrix)))
         headers.append(header)
         matrices.append(matrix)
         
@@ -379,7 +389,7 @@ def preprocessing_pipeline(
     
     if save:
         file = os.path.splitext(file)[0]
-        with open(f'{file}_X.npy', 'wb') as fx, open (f'{file}_y.npy', 'wb') as fy:
+        with open(f'{file}_X{suffix}.npy', 'wb') as fx, open (f'{file}_y.npy', 'wb') as fy:
             np.save(fx, X)
             np.save(fy, y)
     
@@ -387,4 +397,4 @@ def preprocessing_pipeline(
 
 if __name__ == '__main__':
     unzip(RAW_FILE, UNZIPPED_FILE)
-    X, y = preprocessing_pipeline(UNZIPPED_FILE, save=True)
+    X, y = preprocessing_pipeline(UNZIPPED_FILE, save=True, apply_random_permutation=False)
