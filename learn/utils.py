@@ -8,7 +8,7 @@ from torch import nn
 
 # OUR CODE
 from data.make_numpy import preprocessing_pipeline, UNZIPPED_FILE
-from fundamental_domain_projections.example1 import fundamental_domain_projection
+from fundamental_domain_projections.example1 import fundamental_domain_projection, dirichlet_projection
 
 class FundamentalDomainProjectionDataset(Dataset):
     def __init__(

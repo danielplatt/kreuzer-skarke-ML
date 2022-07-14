@@ -1,6 +1,8 @@
 import os, sys, json, numpy as np, pandas as pd, pickle, itertools
 from sklearn.preprocessing import MinMaxScaler
 from typing import TypeVar, Union, List, Literal, Tuple
+from fundamental_domain_projections.dirichlet.dirichlet_dataset import *
+
 
 def create_perturbation(
     X:np.ndarray, 
@@ -249,19 +251,32 @@ def fundamental_domain_projection(
     return x
 
 
+def dirichlet_projection(
+        X: np.ndarray,
+        x0: any=None,
+        gen_name:str='neighbourtranspositions',
+        seeded_ascent:bool=False,
+) -> np.ndarray:
+    '''
+    Uses gradient ascent to approximate projection onto a fundamental domain around a fixed point x0.
 
+    Arguments:
+    ----------
+        X (np.ndarray): Input data matrix
 
+        x0 (matrix/str): Fixed point. Default to a random point. 'Daniel' supports lexicographical ordering
 
+        gen_name (str): method used to create generating set. Defaults to 'neighbourtranspositions'
 
+        seeded_ascent (bool): Whether to use gradient ascent with multiple seeds as described in E.2. Defaults to 'false'
 
+    Return:
+    ----------
+        projected (np.ndarray): `X` projected.
+    '''
 
-
-
-
-
-
-
-
+    X = DirichletDataset(X=[X], matrix_dim=X.shape).X_proj[0]
+    return X
 
 
 if __name__ == '__main__':
@@ -271,6 +286,7 @@ if __name__ == '__main__':
         [3, 5, 1]
     ])
     xp = fundamental_domain_projection(x)
+    # xp = dirichlet_projection(x)
     print('starting matrix')
     print(x)
     print('Transformed matrix')
