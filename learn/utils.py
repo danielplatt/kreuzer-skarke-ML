@@ -1,5 +1,5 @@
 import os, sys, json, numpy as np, pandas as pd, pickle, itertools, logging
-from typing import TypeVar, Union, List, Literal, Tuple
+from typing import TypeVar, Union, List, Literal, Tuple, Callable
 
 # PYTORCH
 import torch
@@ -18,7 +18,7 @@ class FundamentalDomainProjectionDataset(Dataset):
         num_classes:int=None,
         use_one_hot:bool=False,
         apply_random_permutation:bool=False,
-        transformation:function=fundamental_domain_projection,
+        transformation:Callable=fundamental_domain_projection,
         use_cuda:bool=True,
         logger:logging.Logger=None,
     ):
