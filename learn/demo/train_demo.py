@@ -1,6 +1,6 @@
 import numpy as np
+import os
 import tensorflow as tf
-from data.make_numpy import parse_txt_file
 from sklearn.model_selection import train_test_split
 
 
@@ -10,7 +10,7 @@ def get_nn():
     h1 = tf.keras.layers.Dense(100, activation='relu')(prep)
     h2 = tf.keras.layers.Dense(50, activation='relu')(h1)
     h3 = tf.keras.layers.Dense(50, activation='relu')(h2)
-    out = tf.keras.layers.Dense(25, activation='softmax')(h3)
+    out = tf.keras.layers.Dense(43, activation='softmax')(h3)
 
     model = tf.keras.models.Model(inputs=inp, outputs=out)
     model.compile(
@@ -23,7 +23,14 @@ def get_nn():
 
 def main():
     model = get_nn()
-    X, y = parse_txt_file()
+
+    datapath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../data/raw')
+    Xpath = os.path.join(datapath, 'v26_Xpermuted.npy')
+    ypath = os.path.join(datapath, 'v26_y.npy')
+    with open(f'{Xpath}', 'rb') as fx, open(f'{ypath}', 'rb') as fy:
+        X = np.load(fx, allow_pickle=True)
+        y = np.load(fy, allow_pickle=True)
+
     X_new = {}
     y_new = {}
     X_new['train'], X_new['test'], y_new['train'], y_new['test'] = train_test_split(X, y, test_size=0.5)
@@ -37,8 +44,50 @@ def main():
 if __name__ == '__main__':
     main()
 
+# output on permuted dataset
+# Epoch 1/20
+# 1227/1227 [==============================] - 2s 1ms/step - loss: 2.5478 - accuracy: 0.1487 - val_loss: 2.1064 - val_accuracy: 0.1907
+# Epoch 2/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 2.0245 - accuracy: 0.2171 - val_loss: 2.0369 - val_accuracy: 0.2020
+# Epoch 3/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.9275 - accuracy: 0.2404 - val_loss: 2.0002 - val_accuracy: 0.2156
+# Epoch 4/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.8579 - accuracy: 0.2612 - val_loss: 2.0138 - val_accuracy: 0.2139
+# Epoch 5/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.8168 - accuracy: 0.2713 - val_loss: 2.0184 - val_accuracy: 0.2156
+# Epoch 6/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.7826 - accuracy: 0.2836 - val_loss: 1.9968 - val_accuracy: 0.2189
+# Epoch 7/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.7414 - accuracy: 0.2983 - val_loss: 1.9994 - val_accuracy: 0.2206
+# Epoch 8/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.7065 - accuracy: 0.3088 - val_loss: 2.0252 - val_accuracy: 0.2155
+# Epoch 9/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.6927 - accuracy: 0.3150 - val_loss: 2.0239 - val_accuracy: 0.2218
+# Epoch 10/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.6711 - accuracy: 0.3250 - val_loss: 2.0380 - val_accuracy: 0.2200
+# Epoch 11/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.6628 - accuracy: 0.3303 - val_loss: 2.0615 - val_accuracy: 0.2165
+# Epoch 12/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.6488 - accuracy: 0.3359 - val_loss: 2.0645 - val_accuracy: 0.2207
+# Epoch 13/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.6273 - accuracy: 0.3445 - val_loss: 2.0607 - val_accuracy: 0.2203
+# Epoch 14/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.6106 - accuracy: 0.3557 - val_loss: 2.0900 - val_accuracy: 0.2226
+# Epoch 15/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.5919 - accuracy: 0.3604 - val_loss: 2.1125 - val_accuracy: 0.2212
+# Epoch 16/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.5794 - accuracy: 0.3647 - val_loss: 2.0992 - val_accuracy: 0.2223
+# Epoch 17/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.5664 - accuracy: 0.3696 - val_loss: 2.1226 - val_accuracy: 0.2191
+# Epoch 18/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.5597 - accuracy: 0.3710 - val_loss: 2.1356 - val_accuracy: 0.2153
+# Epoch 19/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.5612 - accuracy: 0.3718 - val_loss: 2.1457 - val_accuracy: 0.2189
+# Epoch 20/20
+# 1227/1227 [==============================] - 1s 1ms/step - loss: 1.5388 - accuracy: 0.3783 - val_loss: 2.1443 - val_accuracy: 0.2184
 
-# output:
+
+# output on unpermmuted  dataset:
 # Epoch 1/20
 # 1091/1091 [==============================] - 2s 1ms/step - loss: 2.2385 - accuracy: 0.1769 - val_loss: 1.7860 - val_accuracy: 0.2596
 # Epoch 2/20
