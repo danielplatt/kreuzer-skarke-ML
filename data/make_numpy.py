@@ -373,8 +373,9 @@ def preprocessing_pipeline(
             header[n_cols_label] = r
 
         if apply_random_permutation:
-            np.random.permutation(matrix)
-            np.transpose(np.random.permutation(np.transpose(matrix)))
+            rot_mat = np.random.permutation(matrix)
+            double_rot_mat = np.transpose(np.random.permutation(np.transpose(matrix)))
+            matrix = double_rot_mat
         headers.append(header)
         matrices.append(matrix)
         
@@ -397,4 +398,9 @@ def preprocessing_pipeline(
 
 if __name__ == '__main__':
     unzip(RAW_FILE, UNZIPPED_FILE)
+
     X, y = preprocessing_pipeline(UNZIPPED_FILE, save=True, apply_random_permutation=False)
+    Xpermuted, _ = preprocessing_pipeline(UNZIPPED_FILE, save=True, apply_random_permutation=True)
+
+    print(X[1])
+    print(Xpermuted[1])
