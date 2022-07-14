@@ -7,6 +7,7 @@ from fundamental_domain_projections.dirichlet.dirichlet_dataset import *
 def create_perturbation(
     X:np.ndarray, 
     kind:str='guassian', 
+    use_minmax:bool=False,
     feature_range:Tuple[float, float]=(-0.01, 0.01), 
     scale:float=1
 ) -> np.ndarray:
@@ -17,6 +18,10 @@ def create_perturbation(
         
         kind (str): Defaults to `'guassian'`. The kind of noise to generate.
         
+        use_minmax (bool): Defaults to `False`. Whether or not to use `MinMaxScaler`
+            to rescale the noise to be within the range of `feature_range` prior
+            to multiplying by `scale`.
+
         feature_range (Tuple[float, float]): Feature range to limit the noise to.
             Defaults to `(-0.01, 0.01)`.
         
@@ -205,7 +210,9 @@ def sort_rows(
 
 def fundamental_domain_projection(
     X:np.ndarray, 
+    noise:np.ndarray=None,
     kind:str='guassian', 
+    use_minmax:bool=True,
     feature_range:Tuple[float, float]=(-0.001, 0.001), 
     scale:float=1
 ) -> np.ndarray:
@@ -216,8 +223,16 @@ def fundamental_domain_projection(
     Arguments:
     ----------
         X (np.ndarray): Input data matrix
+
+        noise (np.ndarray): Noise matrix to apply to X. Defaults to `None`. 
+            When `None` the function `create_perturbation` will be called to 
+            make a random noise matrix.
         
         kind (str): Defaults to `'guassian'`. The kind of noise to generate.
+
+        use_minmax (bool): Defaults to `True`. Whether or not to use `MinMaxScaler`
+            to rescale the noise to be within the range of `feature_range` prior
+            to multiplying by `scale`.
         
         feature_range (Tuple[float, float]): Feature range to limit the noise to.
             Defaults to `(-0.01, 0.01)`.
@@ -232,7 +247,14 @@ def fundamental_domain_projection(
 
     
     # STEP 1: add small perturbation to X to make all entries distinct
-    n = create_perturbation(X, kind='guassian', feature_range=feature_range, scale=scale)
+    if noise is None:
+        n = create_perturbation(
+            X, 
+            kind='guassian', use_minmax=use_minmax, 
+            feature_range=feature_range, scale=scale
+        )
+    else:
+        n = noise
     # NOTE: keep n separate because we need to remove it later
     x1 = X + n
     

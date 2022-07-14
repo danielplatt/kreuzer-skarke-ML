@@ -8,8 +8,7 @@ from torch import nn
 
 # OUR CODE
 from data.make_numpy import preprocessing_pipeline, UNZIPPED_FILE
-from fundamental_domain_projections.example1 import fundamental_domain_projection, dirichlet_projection
-
+from fundamental_domain_projections.example1 import fundamental_domain_projection, dirichlet_projection, create_perturbation
 class FundamentalDomainProjectionDataset(Dataset):
     def __init__(
         self, 
@@ -18,7 +17,9 @@ class FundamentalDomainProjectionDataset(Dataset):
         num_classes:int=None,
         use_one_hot:bool=False,
         apply_random_permutation:bool=False,
-        transformation:Callable=fundamental_domain_projection,
+        transformation:Union[Callable, str]=fundamental_domain_projection,
+        use_fixed_perturbation:bool=False,
+        perturbation:np.ndarray=None,
         use_cuda:bool=True,
         logger:logging.Logger=None,
     ):
@@ -37,8 +38,14 @@ class FundamentalDomainProjectionDataset(Dataset):
             apply_random_permutation (bool): Whether or not to randomly permute each matrix rather than use
                 than use FDP. Defaults to `False`.
 
-            transformation (function): A transformation to apply to `X`. Defaults to 
+            transformation (Callable | str): A transformation to apply to `X`. Defaults to 
                 `fundamental_domain_projections.example1.fundamental_domain_projection`.
+
+            use_fixed_perturbation (bool): Whether or not to use a fixed perturbation for
+                when `transformation=='combinatorial'. Defaults to `False`.
+
+            perturbation (np.ndarray): Defaults to `None`. When provided will be the fixed
+                perturbation used if `use_fixed_perturbation=True`
 
             use_cuda (str): Defaults to `True`. Whether or not to put tensors on cuda. 
             
@@ -59,6 +66,14 @@ class FundamentalDomainProjectionDataset(Dataset):
             
         X, y = preprocessing_pipeline(file, extraction_key=extraction_key, apply_random_permutation=apply_random_permutation)
         
+        if perturbation is None:
+            perturbation = create_perturbation(X[0])
+
+        if transformation == fundamental_domain_projection or transformation == 'combinatorial':
+            transformation = fundamental_domain_projection
+            if use_fixed_perturbation:
+                transformation = lambda e: fundamental_domain_projection(e, noise=perturbation)
+
         if logger: 
             logger.info(f'Running fundamental_domain_projection')
             logger.info(f'NOTE: this is only run once! Not once per epoch.')
@@ -72,7 +87,8 @@ class FundamentalDomainProjectionDataset(Dataset):
         self.data_shape = self.X[0].shape
         self.use_cuda = use_cuda
         self.use_one_hot = use_one_hot
-        
+        self.perturbation = perturbation
+
     def __len__(self):
         return len(self.y)
     
