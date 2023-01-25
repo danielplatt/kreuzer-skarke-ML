@@ -1,4 +1,5 @@
 from keras import layers, models, optimizers
+from keras import backend as K
 from data.get_data import get_data
 from sklearn.model_selection import train_test_split
 
@@ -44,9 +45,12 @@ class Hartford:
         self.model.compile(
             loss='mean_squared_error',
             optimizer=optimizers.Adam(0.001),
-            metrics=['accuracy'],
+            metrics=[self.soft_acc],
         )
         print(self.model.summary())
+
+    def soft_acc(self, y_true, y_pred):
+        return K.mean(K.equal(K.round(y_true), K.round(y_pred)))
 
     def apply_equivariant_layer(self, inp, number_of_channels_out):
         '''
