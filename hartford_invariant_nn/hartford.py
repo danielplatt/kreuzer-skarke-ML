@@ -2,6 +2,7 @@ from keras import layers, models, optimizers
 from keras import backend as K
 from data.get_data import get_data
 from sklearn.model_selection import train_test_split
+import tensorflow as tf
 
 
 class Hartford:
@@ -9,43 +10,48 @@ class Hartford:
         self.initalise_model(self)
 
     def initalise_model(self, pooling='sum'):
-        number_of_channels = 100
+        number_of_channels = 256
         inp = layers.Input(shape=(4, 26, 1))
         inp_list = [inp for _ in range(number_of_channels)]
         inp_duplicated = layers.Concatenate(axis=3)(inp_list)
         e1 = self.apply_equivariant_layer(inp_duplicated, number_of_channels)
-        # e1 = layers.Dropout(0.5)(e1)
+        # e1 = layers.Dropout(0.1)(e1)
         e2 = self.apply_equivariant_layer(e1, number_of_channels)
-        # e2 = layers.Dropout(0.5)(e2)
+        # e2 = layers.Dropout(0.1)(e2)
         e3 = self.apply_equivariant_layer(e2, number_of_channels)
-        # e3 = layers.Dropout(0.5)(e3)
-        e4 = self.apply_equivariant_layer(e3, number_of_channels)
-        # e4 = layers.Dropout(0.5)(e4)
-        e5 = self.apply_equivariant_layer(e4, number_of_channels)
-        # e5 = layers.Dropout(0.5)(e5)
+        # e3 = layers.Dropout(0.1)(e3)
+        # e4 = self.apply_equivariant_layer(e3, number_of_channels)
+        # e4 = layers.Dropout(0.1)(e4)
+        # e5 = self.apply_equivariant_layer(e4, number_of_channels)
+        # e5 = layers.Dropout(0.1)(e5)
 
-        e6 = self.apply_equivariant_layer(e5, number_of_channels)
-        # # e6 = layers.Dropout(0.5)(e6)
+        # e6 = self.apply_equivariant_layer(e5, number_of_channels)
+        # e6 = layers.Dropout(0.1)(e6)
         # e7 = equivariant_layer(e6, number_of_channels, number_of_channels)
         # # e7 = layers.Dropout(0.5)(e7)
         # e8 = equivariant_layer(e7, number_of_channels, number_of_channels)
         # e9 = equivariant_layer(e8, number_of_channels, number_of_channels)
 
         if pooling == 'sum':
-            p1 = layers.AveragePooling2D((4, 26), strides=(1, 1), padding='valid')(e6)
+            p1 = layers.AveragePooling2D((4, 26), strides=(1, 1), padding='valid')(e3)
         else:
-            p1 = layers.MaxPooling2D((4, 26), strides=(1, 1), padding='valid')(e6)
+            p1 = layers.MaxPooling2D((4, 26), strides=(1, 1), padding='valid')(e3)
         p2 = layers.Reshape((number_of_channels,))(p1)
-        fc1 = layers.Dense(64, activation='relu')(p2)
-        # fc1 = layers.Dropout(0.5)(fc1)
-        fc2 = layers.Dense(32, activation='relu')(fc1)
-        out = layers.Dense(1, activation='linear')(fc2)
+        fc1 = layers.Dense(256, activation='relu')(p2)
+        fc1 = tf.keras.layers.BatchNormalization()(fc1)
+        fc2 = layers.Dense(256, activation='relu')(fc1)
+        fc2 = tf.keras.layers.BatchNormalization()(fc2)
+        fc3 = layers.Dense(256, activation='relu')(fc2)
+        fc3 = tf.keras.layers.BatchNormalization()(fc3)
+        fc4 = layers.Dense(256, activation='relu')(fc3)
+        fc4 = tf.keras.layers.BatchNormalization()(fc4)
+        out = layers.Dense(35, activation='linear')(fc4)
 
         self.model = models.Model(inputs=inp, outputs=out)
         self.model.compile(
-            loss='mean_squared_error',
-            optimizer=optimizers.Adam(0.001),
-            metrics=[self.soft_acc],
+            loss='categorical_crossentropy',
+            optimizer=optimizers.Adam(0.01),
+            metrics=['categorical_accuracy'],
         )
         print(self.model.summary())
 
@@ -104,7 +110,7 @@ class Hartford:
         :return: None
         '''
 
-        loaded_data = get_data(datasetname=datasetname)
+        loaded_data = get_data(datasetname=datasetname, one_hot=True)
         X_loaded = loaded_data['x_proj']
         y_loaded = loaded_data['y']
 
@@ -113,7 +119,7 @@ class Hartford:
         self.X['train'], self.X['test'], self.y['train'], self.y['test'] = train_test_split(X_loaded, y_loaded, test_size=0.5)
         self.model.fit(
             self.X['train'], self.y['train'],
-            epochs=30,
+            epochs=200,
             validation_data=(self.X['test'], self.y['test']),
         )
 
