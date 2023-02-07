@@ -57,6 +57,41 @@ some entries are malformed, such as the following, which is copied verbatim from
 -1 -1 1 0 
 -1 0 1 1 
 ```
+## How to run this repository (new)
+```src/main.py``` is the entry script. Only 'invariantmlp' model is supported currently. Use below command to get information on different flags.   
+
+```python src/main.py --help```
+
+```commandline
+Output:
+
+usage: main.py [-h] [--dataset DATASET] [--model MODEL] [--output_tag OUTPUT_TAG] [--eval] [--num_epochs NUM_EPOCHS]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --dataset DATASET     Dataset type. Should be from this list: original, original_permuted, combinatorial, combinatorial_permuted, dirichlet, dirichlet_permuted
+                        (default: original)
+  --model MODEL         Model Type. Should be from this list: invariantmlp (default: invariantmlp)
+  --output_tag OUTPUT_TAG
+                        Output tag used to save results or fetch saved results. Required if "--eval" flag is used (default: None)
+  --eval                Specify if the script needs to be run in eval mode (default: False)
+  --num_epochs NUM_EPOCHS
+                        Number of epochs for training (default: 20)
+
+```
+### Training
+
+```python src/main.py --dataset='original' --model='invariantmlp' --output_tag='invariantmlp_original' --num_epochs=20```
+
+### Evaluate
+
+```python src/main.py --dataset='original' --model='invariantmlp' --output_tag='invariatnmlp_original' --eval```
+
+### Tensorborad Visualization
+
+Tensorborad visualizations are supported for training/validation loss and accuracy. All the runs are stored under ```data/runs/tensorboard```. Use below command to launch tensorboard.  
+
+```tensorboard --logdir=data/runs/tensorboard --port=9009```
 
 ## How to run this repository
 
