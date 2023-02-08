@@ -143,3 +143,31 @@ Epoch 20/20
 
 ## Dirichlet projections
 The folder fundamental_domain_projections contains an implementation of an approximation of the Dirichlet fundamental domain projection, which is explained in section E.2 in the preprint. The important function is dirichlet_ord in file is discrete_gradient_ascent.py. Here, x is the input matrix, x0 the matrix specifying the order. You also need to specify a generating set for the symmetry group. Some of them have been implemented in the file generating_sets.
+
+## 8 Feb 2023 homework assignment
+
+```
+data
+> raw
+> > v26.gz
+> projections
+> > 6 files
+> runs
+> > tensorboard files will go here
+> saved_models
+src
+> dataset.py -> creates dataset - done
+> main.py -> manages training - Pragya
+> models
+> > hartford.py - Daniel
+> > xgboost.py - Peter
+> > partially_invariant.py - Pragya
+> > vanilla_nn.py - Peter
+> > vision_transformer.py - Peter
+config
+> constants.py
+util
+> generating_sets.py
+> ... (as before)
+training_suite.ipynb - Peter
+```
