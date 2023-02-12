@@ -1,4 +1,4 @@
-from src.utils.matrix_auxiliaryfunctions import *
+from utils.matrix_auxiliaryfunctions import *
 
 
 class generators:

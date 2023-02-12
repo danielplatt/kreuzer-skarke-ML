@@ -1,12 +1,14 @@
 import logging
 from tqdm import tqdm
+import numpy as np
+
 import torch
 from torch import nn
 from torch.utils.data import Dataset
 
-from src.utils.make_numpy import preprocessing_pipeline
-from src.utils.generating_sets import *
-from src.utils.projections import *
+from utils.make_numpy import preprocessing_pipeline
+from utils.generating_sets import *
+from utils.projections import *
 
 from config.constants import *
 
@@ -137,6 +139,8 @@ class KreuzerSkarkeDataset(Dataset):
             if save_projections:
                 self._save_projections()
 
+        self._create_train_test_split()
+
 
     def _log_msg(self, msg):
         if self.logger:
@@ -177,6 +181,17 @@ class KreuzerSkarkeDataset(Dataset):
         print('...finished.')
         return X_proj
 
+    def _create_train_test_split(self, random_seed=42, train_ratio=0.8):
+        dataset_size = len(self.X_proj)
+        indices = list(range(dataset_size))
+        np.random.seed(random_seed)
+        np.random.shuffle(indices)
+
+        split_idx = int(np.floor(train_ratio * dataset_size))
+        self.train_idx, self.test_idx = indices[:split_idx], indices[split_idx:]
+        self.X_train, self.Y_train = self.X_proj[self.train_idx], self.Y[self.train_idx]
+        self.X_test, self.Y_test = self.X_proj[self.test_idx], self.Y[self.test_idx]
+
     def __len__(self):
         return len(self.Y)
 
@@ -191,32 +206,31 @@ class KreuzerSkarkeDataset(Dataset):
         return x, y
 
 
+
 if __name__ == "__main__":
+    # --- Code snippet to create and save (in .npz format) the different datasets ---
     # (a) Original
-    # dataset = KreuzerSkarkeDataset(num_samples=10)
+    # dataset = KreuzerSkarkeDataset(save_projections=True, projections_file='original')
 
     # (b) Combinatorial projection applied to original
-    # dataset = KreuzerSkarkeDataset(projection='combinatorial', num_samples=10)
+    # dataset = KreuzerSkarkeDataset(projection='combinatorial', save_projections=True, projections_file='combinatorial')
 
     # (c) Dirichlet projection (with x0=‘Daniel’) applied to original
-    # dataset = KreuzerSkarkeDataset(projection='dirichlet', num_samples=10)
+    # dataset = KreuzerSkarkeDataset(projection='dirichlet', save_projections=True, projections_file='dirichlet')
 
     # (d) randomly permuted input
-    # dataset = KreuzerSkarkeDataset(apply_random_permutation=True, num_samples=10)
+    # dataset = KreuzerSkarkeDataset(apply_random_permutation=True, save_projections=True, projections_file='original_permuted')
 
     # (e) Combinatorial projection applied to randomly permuted input
-    # dataset = KreuzerSkarkeDataset(projection='combinatorial', apply_random_permutation=True, num_samples=10)
+    # dataset = KreuzerSkarkeDataset(projection='combinatorial', apply_random_permutation=True, save_projections=True, projections_file='combinatorial_permuted')
 
     # (f) Dirichlet projection (with x0=‘Daniel’) applied to randomly permuted input
-    # dataset = KreuzerSkarkeDataset(projection='dirichlet', apply_random_permutation=True, num_samples=10)
+    # dataset = KreuzerSkarkeDataset(projection='dirichlet', apply_random_permutation=True, save_projections=True, projections_file='dirichlet_permuted')
 
-    # --- Other useful functionalities ---
+    # --- Code snippet to load already created dataset ---
+    dataset = KreuzerSkarkeDataset(save_projections=True, projections_file='test', num_samples=10)
 
-    # Save projections in numpy compressed format (.npz)
-    dataset = KreuzerSkarkeDataset(projection='dirichlet', num_samples=10, save_projections=True, projections_file='test_dirichlet_10')
-
-    # Load projections from numpy compressed format (.npz)
-    # dataset = KreuzerSkarkeDataset(load_projections=True, projections_file='test_dirichlet_10')
-
-    print((dataset.X[0]==dataset.X_proj[0]).all())
-    # print(dataset.X_proj[0])
+    dataset = KreuzerSkarkeDataset(load_projections=True, projections_file='test')
+    X_proj, Y = dataset.X_proj, dataset.Y
+    X_train, Y_train = dataset.X_train, dataset.Y_train
+    X_test, Y_test = dataset.X_test, dataset.Y_test

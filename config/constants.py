@@ -8,6 +8,7 @@ UNZIPPED_INPUT_FILE = BASE_DIR.joinpath('data/raw/v26')
 PROJECTION_DIR = BASE_DIR.joinpath('data/projections')
 SAVED_MODELS_DIR = BASE_DIR.joinpath('data/saved_models')
 SAVED_RESULTS_DIR = BASE_DIR.joinpath('data/saved_results')
+TENSORBOARD_DIR = BASE_DIR.joinpath('data/runs/tensorboard')
 
 ALL_DATASETS = [
     'original',
@@ -16,4 +17,9 @@ ALL_DATASETS = [
     'combinatorial_permuted',
     'dirichlet',
     'dirichlet_permuted',
+]
+
+ALL_MODELS = [
+    'invariantmlp',
+    'hartford',
 ]

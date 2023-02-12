@@ -3,8 +3,8 @@ from sklearn.preprocessing import MinMaxScaler
 from typing import Union, Tuple
 from functools import cmp_to_key
 
-from src.utils.generating_sets import *
-from src.utils.matrix_auxiliaryfunctions import *
+from utils.generating_sets import *
+from utils.matrix_auxiliaryfunctions import *
 
 def create_perturbation(
         X: np.ndarray,
