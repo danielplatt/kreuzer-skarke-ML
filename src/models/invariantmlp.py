@@ -237,7 +237,7 @@ class InvariantMLP():
 
 if __name__ == "__main__":
     dataset = KreuzerSkarkeDataset(load_projections=True, projections_file='original')
-    partially_invariant_nn = PartiallyInvariantNN(dataset)
-    partially_invariant_nn.train(num_epochs=1)
-    print(partially_invariant_nn.get_accuracy())
+    invariantmlp = InvariantMLP(dataset)
+    invariantmlp.train(num_epochs=1)
+    print(invariantmlp.get_accuracy())
 
