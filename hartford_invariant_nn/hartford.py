@@ -3,10 +3,12 @@ from keras import backend as K
 from data.get_data import get_data
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
+from kormos.models import BatchOptimizedSequentialModel
 
 
 class Hartford:
-    def __init__(self):
+    def __init__(self, one_hot_encoded=False):
+        self.one_hot_encoded=one_hot_encoded
         self.initalise_model(self)
 
     def initalise_model(self, pooling='sum'):
@@ -38,21 +40,31 @@ class Hartford:
             p1 = layers.MaxPooling2D((4, 26), strides=(1, 1), padding='valid')(e3)
         p2 = layers.Reshape((number_of_channels,))(p1)
         fc1 = layers.Dense(256, activation='relu')(p2)
-        fc1 = tf.keras.layers.BatchNormalization()(fc1)
+        #fc1 = tf.keras.layers.BatchNormalization()(fc1)
+        #fc1 = layers.Dropout(0.5)(fc1)
         fc2 = layers.Dense(256, activation='relu')(fc1)
-        fc2 = tf.keras.layers.BatchNormalization()(fc2)
+        #fc2 = tf.keras.layers.BatchNormalization()(fc2)
+        #fc2 = layers.Dropout(0.5)(fc2)
         fc3 = layers.Dense(256, activation='relu')(fc2)
-        fc3 = tf.keras.layers.BatchNormalization()(fc3)
+        #fc3 = tf.keras.layers.BatchNormalization()(fc3)
+        #fc3 = layers.Dropout(0.5)(fc3)
         fc4 = layers.Dense(256, activation='relu')(fc3)
-        fc4 = tf.keras.layers.BatchNormalization()(fc4)
+        #fc4 = tf.keras.layers.BatchNormalization()(fc4)
         out = layers.Dense(35, activation='linear')(fc4)
 
         self.model = models.Model(inputs=inp, outputs=out)
-        self.model.compile(
-            loss='categorical_crossentropy',
-            optimizer=optimizers.Adam(0.01),
-            metrics=['categorical_accuracy'],
-        )
+        if self.one_hot_encoded:
+            self.model.compile(
+                loss='categorical_crossentropy',
+                optimizer=optimizers.Adam(0.001),
+                metrics=['categorical_accuracy'],
+            )
+        else:
+            self.model.compile(
+                loss='mean_squared_error',
+                optimizer=optimizers.Adam(0.001),
+                metrics=[self.soft_acc],
+            )
         print(self.model.summary())
 
     def soft_acc(self, y_true, y_pred):
@@ -110,7 +122,7 @@ class Hartford:
         :return: None
         '''
 
-        loaded_data = get_data(datasetname=datasetname, one_hot=True)
+        loaded_data = get_data(datasetname=datasetname, one_hot=self.one_hot_encoded)
         X_loaded = loaded_data['x_proj']
         y_loaded = loaded_data['y']
 
@@ -121,6 +133,7 @@ class Hartford:
             self.X['train'], self.y['train'],
             epochs=200,
             validation_data=(self.X['test'], self.y['test']),
+            batch_size=1
         )
 
     def get_accuracy(self):
@@ -128,6 +141,6 @@ class Hartford:
 
 
 if __name__ == '__main__':
-    hardy = Hartford()
-    hardy.train(datasetname='dirichlet.npz')
+    hardy = Hartford(one_hot_encoded=False)
+    hardy.train(datasetname='original_permuted.npz')
     print(hardy.get_accuracy())
