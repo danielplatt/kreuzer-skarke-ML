@@ -85,6 +85,8 @@ optional arguments:
 
 ```python src/main.py 'original' 'invariantmlp' --output_tag='invariantmlp_original' --num_epochs=20```
 
+(for me worked: ```python -m src.main.py 'original' 'invariantmlp' --output_tag='invariantmlp_original' --num_epochs=20```)
+
 ### Evaluate
 
 ```python src/main.py 'original' 'invariantmlp' --output_tag='invarinatmlp_original' --eval```
