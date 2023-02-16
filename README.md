@@ -91,7 +91,7 @@ optional arguments:
 
 ```python src/main.py 'original' 'invariantmlp' --output_tag='invarinatmlp_original' --eval```
 
-### Tensorborad Visualization
+### Tensorboard Visualization
 
 Tensorborad visualizations are supported for training/validation loss and accuracy. All the runs are stored under ```data/runs/tensorboard```. Use below command to launch tensorboard.  
 
