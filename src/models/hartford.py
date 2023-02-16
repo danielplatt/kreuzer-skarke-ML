@@ -1,17 +1,21 @@
 from keras import layers, models, optimizers
 from keras import backend as K
-from data.get_data import get_data
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from kormos.models import BatchOptimizedSequentialModel
 
+from src.dataset import *
+
 
 class Hartford:
-    def __init__(self, one_hot_encoded=False):
-        self.one_hot_encoded=one_hot_encoded
-        self.initalise_model(self)
+    def __init__(self, dataset: any, load_saved_model: bool = False, output_tag: str = None, one_hot_encoded=False):
+        self.dataset = dataset
+        self.output_tag = output_tag
 
-    def initalise_model(self, pooling='sum'):
+        self.one_hot_encoded=one_hot_encoded
+        self.initialise_model(self)
+
+    def initialise_model(self, pooling='sum'):
         number_of_channels = 256
         inp = layers.Input(shape=(4, 26, 1))
         inp_list = [inp for _ in range(number_of_channels)]
@@ -114,7 +118,7 @@ class Hartford:
     def get_model(self):
         return self.model
 
-    def train(self, datasetname='original'):
+    def train(self, num_epochs):
         '''
         Trains the neural network with "Hartford et al" architecture and prescribed hyperparameters
 
@@ -122,16 +126,14 @@ class Hartford:
         :return: None
         '''
 
-        loaded_data = get_data(datasetname=datasetname, one_hot=self.one_hot_encoded)
-        X_loaded = loaded_data['x_proj']
-        y_loaded = loaded_data['y']
-
         self.X = {}
         self.y = {}
-        self.X['train'], self.X['test'], self.y['train'], self.y['test'] = train_test_split(X_loaded, y_loaded, test_size=0.5)
+        self.X['train'], self.y['train'] = self.dataset.X_train, self.dataset.Y_train
+        self.X['test'], self.y['test'] = self.dataset.X_test, self.dataset.Y_test
+
         self.model.fit(
             self.X['train'], self.y['train'],
-            epochs=200,
+            epochs=num_epochs,
             validation_data=(self.X['test'], self.y['test']),
             batch_size=1
         )
@@ -141,6 +143,7 @@ class Hartford:
 
 
 if __name__ == '__main__':
-    hardy = Hartford(one_hot_encoded=False)
-    hardy.train(datasetname='original_permuted.npz')
+    dataset = KreuzerSkarkeDataset(load_projections=True, projections_file='original')
+    hardy = Hartford(dataset)
+    hardy.train(num_epochs=1)
     print(hardy.get_accuracy())

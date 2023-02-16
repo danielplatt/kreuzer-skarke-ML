@@ -23,7 +23,7 @@ def create_model(
     if model == 'invariantmlp':
         return InvariantMLP(dataset, output_tag=args['output_tag'], load_saved_model=args['eval'])
     elif model == 'hartford':
-        return Hartford()
+        return Hartford(dataset, output_tag=args['output_tag'], load_saved_model=args['eval'])
     else:
         raise ValueError('Unsupported model type %s' % model)
 
