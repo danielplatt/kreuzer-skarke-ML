@@ -9,6 +9,21 @@ from src.dataset import *
 
 class Hartford:
     def __init__(self, dataset: any, load_saved_model: bool = False, output_tag: str = None, one_hot_encoded=False):
+        """
+        Arguments:
+        ----------
+        dataset : any
+            The KreuzerSkarkeDataset object containing the type of dataset used. Should be amongst 'original',
+            'original_permuted', 'combinatorial', 'combinatorial_permuted', 'dirichlet', and 'dirichlet_permuted'.
+
+        load_saved_model : bool
+            Flag specifying if a pre-saved model is to be used. If 'True', loads the state_dict of the model saved
+            under 'output_tag' in SAVED_MODELS_DIR folder. Defaults to 'None'. TODO: IMPLEMENT THIS
+
+        output_tag : str
+            Tag used to save model, model results, and tensorboard logs. Alternatively, if loading a pre-saved model,
+            the tag used to fetch model's state_dict. Defaults to 'None'. TODO: IMPLEMENT THIS
+        """
         self.dataset = dataset
         self.output_tag = output_tag
 
@@ -21,22 +36,8 @@ class Hartford:
         inp_list = [inp for _ in range(number_of_channels)]
         inp_duplicated = layers.Concatenate(axis=3)(inp_list)
         e1 = self.apply_equivariant_layer(inp_duplicated, number_of_channels)
-        # e1 = layers.Dropout(0.1)(e1)
         e2 = self.apply_equivariant_layer(e1, number_of_channels)
-        # e2 = layers.Dropout(0.1)(e2)
         e3 = self.apply_equivariant_layer(e2, number_of_channels)
-        # e3 = layers.Dropout(0.1)(e3)
-        # e4 = self.apply_equivariant_layer(e3, number_of_channels)
-        # e4 = layers.Dropout(0.1)(e4)
-        # e5 = self.apply_equivariant_layer(e4, number_of_channels)
-        # e5 = layers.Dropout(0.1)(e5)
-
-        # e6 = self.apply_equivariant_layer(e5, number_of_channels)
-        # e6 = layers.Dropout(0.1)(e6)
-        # e7 = equivariant_layer(e6, number_of_channels, number_of_channels)
-        # # e7 = layers.Dropout(0.5)(e7)
-        # e8 = equivariant_layer(e7, number_of_channels, number_of_channels)
-        # e9 = equivariant_layer(e8, number_of_channels, number_of_channels)
 
         if pooling == 'sum':
             p1 = layers.AveragePooling2D((4, 26), strides=(1, 1), padding='valid')(e3)
@@ -44,16 +45,9 @@ class Hartford:
             p1 = layers.MaxPooling2D((4, 26), strides=(1, 1), padding='valid')(e3)
         p2 = layers.Reshape((number_of_channels,))(p1)
         fc1 = layers.Dense(256, activation='relu')(p2)
-        #fc1 = tf.keras.layers.BatchNormalization()(fc1)
-        #fc1 = layers.Dropout(0.5)(fc1)
         fc2 = layers.Dense(256, activation='relu')(fc1)
-        #fc2 = tf.keras.layers.BatchNormalization()(fc2)
-        #fc2 = layers.Dropout(0.5)(fc2)
         fc3 = layers.Dense(256, activation='relu')(fc2)
-        #fc3 = tf.keras.layers.BatchNormalization()(fc3)
-        #fc3 = layers.Dropout(0.5)(fc3)
         fc4 = layers.Dense(256, activation='relu')(fc3)
-        #fc4 = tf.keras.layers.BatchNormalization()(fc4)
         out = layers.Dense(35, activation='linear')(fc4)
 
         self.model = models.Model(inputs=inp, outputs=out)
@@ -122,7 +116,7 @@ class Hartford:
         '''
         Trains the neural network with "Hartford et al" architecture and prescribed hyperparameters
 
-        :param datasetname:'original.npz' or 'dirichlet_permuted.npz' or 'dirichlet.npz' etc
+        :param num_epochs: Train for how many epochs
         :return: None
         '''
 
@@ -135,7 +129,7 @@ class Hartford:
             self.X['train'], self.y['train'],
             epochs=num_epochs,
             validation_data=(self.X['test'], self.y['test']),
-            batch_size=1
+            batch_size=1 # TODO: ADD CALLBACK THAT SAVES DATA FOR TENSORBOARD HERE
         )
 
     def get_accuracy(self):
