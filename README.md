@@ -86,10 +86,14 @@ optional arguments:
 ```python src/main.py 'original' 'invariantmlp' --output_tag='invariantmlp_original' --num_epochs=20```
 
 (for me worked: ```python -m src.main.py 'original' 'invariantmlp' --output_tag='invariantmlp_original' --num_epochs=20```)
+for xgboost: 
+
 
 ### Evaluate
 
 ```python src/main.py 'original' 'invariantmlp' --output_tag='invarinatmlp_original' --eval```
+
+For XGBoost:  ```python src/main.py 'dirichlet' 'xgboost' --output_tag='small_dirichlet' --eval```
 
 ### Tensorboard Visualization
 
