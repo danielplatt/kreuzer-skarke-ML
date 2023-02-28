@@ -1,0 +1,2 @@
+model_checkpoint_path: "vision_original.pt"
+all_model_checkpoint_paths: "vision_original.pt"

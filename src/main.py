@@ -26,6 +26,11 @@ def create_model(
         return Hartford(dataset, output_tag=args['output_tag'], load_saved_model=args['eval'])
     elif model == 'xgboost':
         return XGboost(dataset,  output_tag=args['output_tag'], load_saved_model=args['eval'])
+    elif model == 'vanilla_nn':
+        return Vanilla_nn(dataset,  output_tag=args['output_tag'], load_saved_model=args['eval'],one_hot_encoded=False)
+        # To DO: implement one hot encoded feature
+    elif model == 'vision_transformer':
+        return VisionT(dataset,  output_tag=args['output_tag'], load_saved_model=args['eval'],one_hot_encoded=True)
     else:
         raise ValueError('Unsupported model type %s' % model)
 

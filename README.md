@@ -86,14 +86,16 @@ optional arguments:
 ```python src/main.py 'original' 'invariantmlp' --output_tag='invariantmlp_original' --num_epochs=20```
 
 (for me worked: ```python -m src.main.py 'original' 'invariantmlp' --output_tag='invariantmlp_original' --num_epochs=20```)
-for xgboost: 
-
+for xgboost: ```python -m src.main 'original' 'xgboost' --output_tag='xgboost_original' --num_epochs=20```
+for vision transformer: ```python -m src.main 'original' 'vision_transformer' --output_tag='vision_original' --num_epochs=1```
+for vanilla cnn: ```python -m src.main 'original' 'vanilla_nn' --output_tag='vanilla_nn_original' --num_epochs=20```
 
 ### Evaluate
 
 ```python src/main.py 'original' 'invariantmlp' --output_tag='invarinatmlp_original' --eval```
 
 For XGBoost:  ```python src/main.py 'dirichlet' 'xgboost' --output_tag='small_dirichlet' --eval```
+
 
 ### Tensorboard Visualization
 
