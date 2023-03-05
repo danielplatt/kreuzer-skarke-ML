@@ -93,7 +93,7 @@ class XGboost:
 
     
     def train(self, save_csv: bool = True,
-            num_epochs: int = 20,):
+            num_epochs: int = 20):
         '''
         Trains the neural network with "Hartford et al" architecture and prescribed hyperparameters
 
