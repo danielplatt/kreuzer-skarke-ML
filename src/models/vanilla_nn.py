@@ -1,3 +1,4 @@
+
 from keras import backend as K
 from sklearn.model_selection import train_test_split
 from keras import layers, Model, optimizers, callbacks
@@ -25,18 +26,28 @@ class Vanilla_nn:
             Tag used to save model, model results, and tensorboard logs. Alternatively, if loading a pre-saved model,
             the tag used to fetch model's state_dict. Defaults to 'None'. TODO: IMPLEMENT THIS
         """
+        super().__init__()
         self.dataset = dataset
         self.output_tag = output_tag
-
+        self.X = {}
+        self.y = {}
+        self.X['train'], self.y['train'] = self.dataset.X_train, self.dataset.Y_train
+        self.X['test'], self.y['test'] = self.dataset.X_test, self.dataset.Y_test
         self.one_hot_encoded=one_hot_encoded
-        self.initialise_model()
+        self.initialise_model(load_saved_model)
         if load_saved_model:
             assert output_tag is not None
-            del self.model  # deletes the existing model
+            #del self.model  # deletes the existing model
             saved_model_path = SAVED_MODELS_DIR.joinpath(output_tag + '.h5')
-            self.model = load_model(saved_model_path)
-
-    def initialise_model(self):
+            self.model.compile(
+                loss='mean_squared_error',
+                optimizer=optimizers.Adam(0.001),
+                metrics=[self.soft_acc,'mean_squared_error'],
+            )
+            self.model.load_weights(saved_model_path)
+        
+        
+    def initialise_model(self,load_saved_model: bool = False):
         
         inp = layers.Input(shape=(4, 26, 1))
         inp = layers.Input((4,26,1))     ##
@@ -61,12 +72,18 @@ class Vanilla_nn:
                 optimizer=optimizers.Adam(0.001),
                 metrics=[self.soft_acc,'mean_squared_error'],
             )
-        print(self.model.summary())
+        if not load_saved_model:
+          print(self.model.summary())
 
     def soft_acc(self, y_true, y_pred):
         return K.mean(K.equal(K.round(y_true), K.round(y_pred)))
+    
+    def get_accuracy(self):
+        print("Evaluating on 128 batch size",self.model.evaluate(self.X['test'],self.y['test'],batch_size=128))
+        y_predicted = self.model.predict(self.X['test']).flatten()
+        print("The accuracy on the test set is ",(np.sum(np.round(y_predicted) == self.y['test']))/len(self.y['test']))
+        
 
-   
     def get_model(self):
         return self.model
 
@@ -78,12 +95,6 @@ class Vanilla_nn:
         :param num_epochs: Train for how many epochs
         :return: None
         '''
-
-        self.X = {}
-        self.y = {}
-        self.X['train'], self.y['train'] = self.dataset.X_train, self.dataset.Y_train
-        self.X['test'], self.y['test'] = self.dataset.X_test, self.dataset.Y_test
-
         if self.output_tag is None:
             self.output_tag = 'vanilla_nn_' + self.dataset.projections_file
         log_dir =  TENSORBOARD_DIR.joinpath(self.output_tag)
@@ -98,7 +109,7 @@ class Vanilla_nn:
         if self.output_tag is not None:
             saved_model_path = SAVED_MODELS_DIR.joinpath(self.output_tag + '.h5')
             print('Saving final model checkpoint to %s for %d epochs ' % (saved_model_path, num_epochs))
-            self.model.save(saved_model_path)  # creates a HDF5 file 'my_model.h5'
+            self.model.save_weights(saved_model_path)  # creates a HDF5 file 'my_model.h5'
 
         if save_csv:
             saved_results_path = SAVED_RESULTS_DIR.joinpath(self.output_tag + '.csv')
@@ -106,13 +117,9 @@ class Vanilla_nn:
             print('Saving results as a csv in  %s' % saved_results_path)
             results_df.to_csv(saved_results_path)
 
-    def get_accuracy(self):
-        print(self.model.evaluate(self.X['test'], self.y['test'], batch_size=128))
 
 if __name__ == '__main__':
     dataset = KreuzerSkarkeDataset(load_projections=True, projections_file='original')
     vanillann = Vanilla_nn(dataset)
     vanillann.train(num_epochs=1)
     print(vanillann.get_accuracy())
-
-
