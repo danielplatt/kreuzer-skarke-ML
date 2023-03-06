@@ -82,13 +82,11 @@ class XGboost:
         num_entries_train = self.dataset.X_train.shape[0]
         self.X['train'] = self.dataset.X_train.reshape(num_entries_train,4*26)
         self.y['train'] = self.dataset.Y_train.reshape(num_entries_train)
-
+        
         assert not one_hot_encoded, "one hot encoding is not currently supported for XGboost."
         if load_saved_model:
             assert output_tag is not None
             saved_model_path = SAVED_MODELS_DIR.joinpath(output_tag + '.json')
-            print(saved_model_path)
-            self.model = xgb.Booster()
             self.model.load_model(saved_model_path)
 
     
