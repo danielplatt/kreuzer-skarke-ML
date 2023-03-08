@@ -112,7 +112,7 @@ class Hartford:
     def get_model(self):
         return self.model
 
-    def train(self, num_epochs):
+    def train(self, num_epochs=200):
         '''
         Trains the neural network with "Hartford et al" architecture and prescribed hyperparameters
 
