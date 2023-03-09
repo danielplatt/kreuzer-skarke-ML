@@ -1,6 +1,6 @@
 from keras import backend as K
 from sklearn.model_selection import train_test_split
-from keras import layers, Model, optimizers
+from keras import layers, Model, optimizers, callbacks
 import tensorflow as tf
 import datetime, os
 import matplotlib.pyplot as plt
@@ -11,7 +11,10 @@ from tensorflow.keras import layers
 import tensorflow_addons as tfa
 from src.dataset import *
 import random
+import pandas as pd
 from itertools import permutations
+### Model Based on: Khalid Salama's implementation for vision transformer
+# https://colab.research.google.com/github/keras-team/keras-io/blob/master/examples/vision/ipynb/image_classification_with_vision_transformer.ipynb
 
 class Patches(layers.Layer):
     def get_config(self):
@@ -78,6 +81,17 @@ class VisionT:
         self.dataset = dataset
         self.output_tag = output_tag
 
+        self.X = {}
+        self.y = {}
+
+        x_train, self.y['train'] = self.dataset.X_train, self.dataset.Y_train
+        x_test, self.y['test'] = self.dataset.X_test, self.dataset.Y_test
+        
+        num_train = np.shape(x_train)[0]
+        num_test = np.shape(x_test)[0]
+        self.X['train'] = np.zeros((num_train,52,52))
+        self.X['test'] = np.zeros((num_test,52,52))
+
         self.one_hot_encoded=one_hot_encoded
         self.learning_rate = 0.001
         self.weight_decay = 0.00001
@@ -92,17 +106,25 @@ class VisionT:
             self.projection_dim * 2,
             self.projection_dim,
         ]  # Size of the transformer layers
-        self.transformer_layers = 2
-        #self.mlp_head_units = [2048, 1024]  # Size of the dense layers of the final classifier
-        self.mlp_head_units = [4,2]
+        #self.transformer_layers = 2
+        self.transformer_layers = 8
+        self.mlp_head_units = [2048, 1024]  # Size of the dense layers of the final classifier
+        #self.mlp_head_units = [4,2]
         perm_col_index = [i for i in range(26)]
         random.seed(4)
         random.shuffle(perm_col_index)
         self.perm_col_index = perm_col_index
+
+        self.permute_data_preprocessing()
         self.num_classes = 45
         self.input_shape = (52, 52 , 1)
 
-        self.model = self.initialise_model()
+        self.model = self.initialise_model(load_saved_model)
+        if load_saved_model:
+            assert output_tag is not None
+            #del self.model  # deletes the existing model
+            saved_model_path = SAVED_MODELS_DIR.joinpath(output_tag + '.h5')
+            self.model.load_weights(saved_model_path)
 
     def permute_row(self,input_matrix, index):
         permute_index = index % 12
@@ -117,7 +139,25 @@ class VisionT:
         for i in range(26):
             output_matrix[:,i] = input_matrix[:,self.perm_col_index[i]] 
         return output_matrix
+    def permute_data_preprocessing(self):
+        x_train, self.y['train'] = self.dataset.X_train, self.dataset.Y_train
+        x_test, self.y['test'] = self.dataset.X_test, self.dataset.Y_test
+        
+        num_train = np.shape(x_train)[0]
+        num_test = np.shape(x_test)[0]
+        self.X['train'] = np.zeros((num_train,52,52))
+        self.X['test'] = np.zeros((num_test,52,52))
+        for i in range(np.shape(x_train)[0]):
+            for j in range(13):
+                self.X['train'][i,4*j:4*j+4,:26] = np.copy(self.permute_row(x_train[i,:,:],j))
+                # not permuted column stacked
+                self.X['train'][i,4*j:4*j+4,26:] = np.copy(self.permute_column(self.permute_row(x_train[i,:,:],j)))
+        for i in range(np.shape(x_test)[0]):
+            for j in range(13):
 
+                self.X['test'][i,4*j:4*j+4,:26] = np.copy(self.permute_row(x_test[i,:,:],j))
+                # not permuted column stacked
+                self.X['test'][i,4*j:4*j+4,26:] = np.copy(self.permute_column(self.permute_row(x_test[i,:,:],j)))
 
     def create_vit_classifier(self):
         inputs = layers.Input(shape= self.input_shape)
@@ -159,7 +199,7 @@ class VisionT:
         model = keras.Model(inputs=inputs, outputs=logits)
         return model
 
-    def initialise_model(self):
+    def initialise_model(self, load_saved_model: bool = False):
         
         
 
@@ -171,9 +211,6 @@ class VisionT:
         optimizer = tfa.optimizers.AdamW(
         learning_rate=self.learning_rate, weight_decay=self.weight_decay, clipnorm=5
     )
-
-        
-        
         
         if self.one_hot_encoded:
             model.compile(
@@ -190,7 +227,8 @@ class VisionT:
                 optimizer=optimizers.Adam(0.001),
                 metrics=[self.soft_acc],
             )
-        print(model.summary())
+        if not load_saved_model:
+          print(model.summary())
         return model
 
     def soft_acc(self, y_true, y_pred):
@@ -200,80 +238,43 @@ class VisionT:
     def get_model(self):
         return self.model
 
-    def train(self, num_epochs):
+    def train(self, save_csv: bool = True,
+            num_epochs: int = 20):
         '''
-        Trains the neural network with "Hartford et al" architecture and prescribed hyperparameters
+        Trains the vision transformer
 
         :param num_epochs: Train for how many epochs
         :return: None
         '''
-
-        self.X = {}
-        self.y = {}
-        x_train, self.y['train'] = self.dataset.X_train, self.dataset.Y_train
-        x_test, self.y['test'] = self.dataset.X_test, self.dataset.Y_test
-        
-        num_train = np.shape(x_train)[0]
-        num_test = np.shape(x_test)[0]
-        self.X['train'] = np.zeros((num_train,52,52))
-        self.X['test'] = np.zeros((num_test,52,52))
-        for i in range(np.shape(x_train)[0]):
-            for j in range(13):
-                self.X['train'][i,4*j:4*j+4,:26] = np.copy(self.permute_row(x_train[i,:,:],j))
-                # not permuted column stacked
-                self.X['train'][i,4*j:4*j+4,26:] = np.copy(self.permute_column(self.permute_row(x_train[i,:,:],j)))
-        for i in range(np.shape(x_test)[0]):
-            for j in range(13):
-
-                self.X['test'][i,4*j:4*j+4,:26] = np.copy(self.permute_row(x_test[i,:,:],j))
-                # not permuted column stacked
-                self.X['test'][i,4*j:4*j+4,26:] = np.copy(self.permute_column(self.permute_row(x_test[i,:,:],j)))
-        
-     
-        
         
         if self.output_tag is None:
-            self.output_tag = 'vision_transformer_' + self.dataset.projections_file
-
-        self.saved_model_path = SAVED_MODELS_DIR.joinpath(self.output_tag + '.pt')
-        
-
-        checkpoint_callback = keras.callbacks.ModelCheckpoint(
-            self.saved_model_path,
-            monitor="val_accuracy",
-            save_best_only=True,
-            save_weights_only=True,
-        )
-
-
-
-
-        # logdir = os.path.join("logs", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-        # tensorboard_callback = tf.keras.callbacks.TensorBoard(logdir, histogram_freq=1)
-        
+            self.output_tag = 'vision_transformer' + self.dataset.projections_file
+        log_dir =  TENSORBOARD_DIR.joinpath(self.output_tag)      
         history = self.model.fit(
             x=self.X['train'],
             y=self.y['train'],
             batch_size=self.batch_size,
-            epochs=1,
+            epochs=num_epochs,
             validation_split=0.1,
-            callbacks=[checkpoint_callback],#tensorboard_callback
+            callbacks=[callbacks.TensorBoard(log_dir=log_dir)],#tensorboard_callback
         )
+        if self.output_tag is not None:
+            saved_model_path = SAVED_MODELS_DIR.joinpath(self.output_tag + '.h5')
+            print('Saving final model checkpoint to %s for %d epochs ' % (saved_model_path, num_epochs))
+            self.model.save_weights(saved_model_path)  # creates a HDF5 file 'my_model.h5'
 
-        
+        if save_csv:
+            saved_results_path = SAVED_RESULTS_DIR.joinpath(self.output_tag + '.csv')
+            results_df = pd.DataFrame(history.history)
+            print('Saving results as a csv in  %s' % saved_results_path)
+            results_df.to_csv(saved_results_path)
+
 
         return history
 
-        # self.model.fit(
-        #     self.X['train'], self.y['train'],
-        #     epochs=num_epochs,
-        #     validation_data=(self.X['test'], self.y['test']),
-        #     batch_size=1 # TODO: ADD CALLBACK THAT SAVES DATA FOR TENSORBOARD HERE
-        # )
-
     def get_accuracy(self):
         #self.model.load_weights(self.saved_model_path)
-        _, accuracy, top_5_accuracy = self.model.evaluate(self.X['test'], self.y['test'])
+        _,accuracy, top_5_accuracy = self.model.evaluate(self.X['test'], self.y['test'],batch_size=self.batch_size)
         print(f"Test accuracy: {round(accuracy * 100, 2)}%")
         print(f"Test top 5 accuracy: {round(top_5_accuracy * 100, 2)}%")
         #print(self.model.evaluate(self.X['test'], self.y['test'], batch_size=128))
@@ -284,7 +285,4 @@ if __name__ == '__main__':
     visiontrans = VisionT(dataset)
     visiontrans.train(num_epochs=1)
     print(visiontrans.get_accuracy())
-
-
-
 
