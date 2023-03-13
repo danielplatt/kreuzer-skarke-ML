@@ -1,9 +1,9 @@
-from keras import layers, models, optimizers
+from keras import layers, models, optimizers, callbacks
 from keras import backend as K
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from kormos.models import BatchOptimizedSequentialModel
-
+import pandas as pd
 from src.dataset import *
 
 
@@ -26,11 +26,21 @@ class Hartford:
         """
         self.dataset = dataset
         self.output_tag = output_tag
+        self.batch_size = 32
 
+        self.X = {}
+        self.y = {}
+        self.X['train'], self.y['train'] = self.dataset.X_train, self.dataset.Y_train
+        self.X['test'], self.y['test'] = self.dataset.X_test, self.dataset.Y_test
         self.one_hot_encoded=one_hot_encoded
-        self.initialise_model(self)
+        self.initialise_model(self,load_saved_model=load_saved_model)
+        if load_saved_model:
+            assert output_tag is not None
+            #del self.model  # deletes the existing model
+            saved_model_path = SAVED_MODELS_DIR.joinpath(output_tag + '.h5')
+            self.model.load_weights(saved_model_path)
 
-    def initialise_model(self, pooling='sum'):
+    def initialise_model(self, pooling='sum', load_saved_model:bool = True):
         number_of_channels = 256
         inp = layers.Input(shape=(4, 26, 1))
         inp_list = [inp for _ in range(number_of_channels)]
@@ -63,7 +73,8 @@ class Hartford:
                 optimizer=optimizers.Adam(0.001),
                 metrics=[self.soft_acc],
             )
-        print(self.model.summary())
+        if not load_saved_model:
+          print(self.model.summary())
 
     def soft_acc(self, y_true, y_pred):
         return K.mean(K.equal(K.round(y_true), K.round(y_pred)))
@@ -112,7 +123,8 @@ class Hartford:
     def get_model(self):
         return self.model
 
-    def train(self, num_epochs=200):
+    def train(self, save_csv: bool = True,
+            num_epochs: int = 20):
         '''
         Trains the neural network with "Hartford et al" architecture and prescribed hyperparameters
 
@@ -120,17 +132,30 @@ class Hartford:
         :return: None
         '''
 
-        self.X = {}
-        self.y = {}
-        self.X['train'], self.y['train'] = self.dataset.X_train, self.dataset.Y_train
-        self.X['test'], self.y['test'] = self.dataset.X_test, self.dataset.Y_test
-
-        self.model.fit(
-            self.X['train'], self.y['train'],
+        if self.output_tag is None:
+            self.output_tag = 'hartford_' + self.dataset.projections_file
+        log_dir =  TENSORBOARD_DIR.joinpath(self.output_tag)      
+        history = self.model.fit(
+            x=self.X['train'],
+            y=self.y['train'],
+            batch_size=self.batch_size,
             epochs=num_epochs,
             validation_data=(self.X['test'], self.y['test']),
-            batch_size=1 # TODO: ADD CALLBACK THAT SAVES DATA FOR TENSORBOARD HERE
+            callbacks=[callbacks.TensorBoard(log_dir=log_dir)],#tensorboard_callback
         )
+        if self.output_tag is not None:
+            saved_model_path = SAVED_MODELS_DIR.joinpath(self.output_tag + '.h5')
+            print('Saving final model checkpoint to %s for %d epochs ' % (saved_model_path, num_epochs))
+            self.model.save_weights(saved_model_path)  # creates a HDF5 file 'my_model.h5'
+
+        if save_csv:
+            saved_results_path = SAVED_RESULTS_DIR.joinpath(self.output_tag + '.csv')
+            results_df = pd.DataFrame(history.history)
+            print('Saving results as a csv in  %s' % saved_results_path)
+            results_df.to_csv(saved_results_path)
+
+
+        return history
 
     def get_accuracy(self):
         print(self.model.evaluate(self.X['test'], self.y['test'], batch_size=128))
