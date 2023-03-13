@@ -31,6 +31,8 @@ def create_model(
         # To DO: implement one hot encoded feature
     elif model == 'vision_transformer':
         return VisionT(dataset,  output_tag=args['output_tag'], load_saved_model=args['eval'],one_hot_encoded=True)
+    elif model == 'pointnet':
+        return PointNet(dataset,  output_tag=args['output_tag'], load_saved_model=args['eval'])
     else:
         raise ValueError('Unsupported model type %s' % model)
 
@@ -51,6 +53,7 @@ dataset = args['dataset'].lower().strip()
 assert dataset in ALL_DATASETS
 
 dataset = KreuzerSkarkeDataset(load_projections=True, projections_file=dataset)
+print(len(dataset.X), dataset.X[0].shape)
 model = create_model(args, dataset)
 
 # --- Trigger training/evaluation ---
