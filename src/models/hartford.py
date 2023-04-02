@@ -2,7 +2,7 @@ from keras import layers, models, optimizers, callbacks
 from keras import backend as K
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
-from kormos.models import BatchOptimizedSequentialModel
+#from kormos.models import BatchOptimizedSequentialModel
 import pandas as pd
 from src.dataset import *
 
