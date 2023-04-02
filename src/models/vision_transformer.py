@@ -274,9 +274,10 @@ class VisionT:
 
     def get_accuracy(self):
         #self.model.load_weights(self.saved_model_path)
-        _,accuracy, top_5_accuracy = self.model.evaluate(self.X['test'], self.y['test'],batch_size=self.batch_size)
+        _,accuracy = self.model.evaluate(self.X['test'], self.y['test'],batch_size=self.batch_size)
         print(f"Test accuracy: {round(accuracy * 100, 2)}%")
-        print(f"Test top 5 accuracy: {round(top_5_accuracy * 100, 2)}%")
+        return accuracy
+        #print(f"Test top 5 accuracy: {round(top_5_accuracy * 100, 2)}%")
         #print(self.model.evaluate(self.X['test'], self.y['test'], batch_size=128))
 
 
