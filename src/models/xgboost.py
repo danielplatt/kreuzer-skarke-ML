@@ -125,7 +125,9 @@ class XGboost:
     def get_accuracy(self):
         
         y_predicted = self.model.predict(xgb.DMatrix(self.X['test']))
-        print("The accuracy on the test set is ",(np.sum(np.round(y_predicted) == self.y['test']))/len(self.y['test']))
+        this_accuracy = (np.sum(np.round(y_predicted) == self.y['test']))/len(self.y['test'])
+        print("The accuracy on the test set is ", this_accuracy)
+        return this_accuracy
         
 
 if __name__ == '__main__':

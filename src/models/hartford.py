@@ -158,7 +158,8 @@ class Hartford:
         return history
 
     def get_accuracy(self):
-        print(self.model.evaluate(self.X['test'], self.y['test'], batch_size=128))
+        return self.model.evaluate(self.X['test'], self.y['test'], batch_size=128)[1]
+        # evaluate gives [L2 loss, soft acc]
 
 
 if __name__ == '__main__':
