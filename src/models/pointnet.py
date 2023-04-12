@@ -7,13 +7,9 @@ from torch_cluster import knn_graph
 from torch_geometric.nn import global_max_pool
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
-from torch.utils.data.dataloader import default_collate
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data.sampler import SubsetRandomSampler
-from sklearn.metrics import confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
-import pandas as pd
+
 
 class PointNetLayer(MessagePassing):
     def __init__(self, in_channels, out_channels):
@@ -42,7 +38,7 @@ class PointNetLayer(MessagePassing):
             # In the first layer, we may not have any hidden node features,
             # so we only combine them in case they are present.
             input = torch.cat([h_j, input], dim=-1)
-
+            
         return self.mlp(input)  # Apply our final MLP.
     
 class PointNetModel(torch.nn.Module):
@@ -53,16 +49,16 @@ class PointNetModel(torch.nn.Module):
         self.conv1 = PointNetLayer(4, 50)
         self.conv2 = PointNetLayer(50, 100)
         self.conv3 = PointNetLayer(100, 100)
-        self.conv4 = PointNetLayer(100, 100)
-        self.classifier = Linear(100, 43)
+        self.conv4 = PointNetLayer(100, 43)
+        self.classifier = Linear(43, 43)
         
-    def forward(self, pos, batch):
+    def forward(self, pos, batch, edge_index):
         # Compute the kNN graph:
         # Here, we need to pass the batch vector to the function call in order
         # to prevent creating edges between points of different examples.
         # We also add `loop=True` which will add self-loops to the graph in
         # order to preserve central point information.
-        edge_index = knn_graph(pos, k=95, batch=batch, loop=True)
+        #edge_index = knn_graph(pos, k=26, batch=batch, loop=False)
         
         # 3. Start bipartite message passing.
         h = self.conv1(h=pos, pos=pos, edge_index=edge_index)
@@ -134,9 +130,9 @@ class PointNet():
         points_test  = build_points(self.dataset.X_test,  self.dataset.Y_test)
         
         for data in points_train:
-            data.edge_index = knn_graph(data.pos, k=95)
+            data.edge_index = knn_graph(data.pos, k=26)
         for data in points_test:
-            data.edge_index = knn_graph(data.pos, k=95)
+            data.edge_index = knn_graph(data.pos, k=26)
             
         self.train_dataloader = DataLoader(points_train, batch_size=64)
         self.val_dataloader   = DataLoader(points_test,  batch_size=64)
@@ -185,7 +181,7 @@ class PointNet():
             if train:
                 assert optimizer is not None
                 optimizer.zero_grad()
-            pred = self.model(data.pos, data.batch)
+            pred = self.model(data.pos, data.batch, data.edge_index)
             loss = self.loss_fn(pred, data.y)
 
             pred = np.argmax(pred.detach().cpu().numpy(), axis=1)
@@ -213,8 +209,23 @@ class PointNet():
         """
         self.model.eval()
         _, acc = self.run_epoch(self.val_dataloader, print_result=True)
-        self.model.train()
         return acc
+    
+    def get_predictions(self):
+        """
+        Returns predictions and truth vectors from validation dataset
+        """
+        self.model.eval()
+        preds = []
+        truth = []
+        
+        for data in self.val_dataloader:
+            pred = self.model(data.pos, data.batch, data.edge_index)
+            pred = np.argmax(pred.detach().cpu().numpy(), axis=1)
+            preds.append(pred)
+            truth.appends(data.y.detach().cpu().numpy())
+            
+        return preds, truth
 
     def train(
             self,
@@ -243,6 +254,8 @@ class PointNet():
 
         max_acc = 0
         train_losses, val_losses, train_accuracies, val_accuracies = [], [], [], []
+        
+        self.model.train()
 
         for epoch in tqdm(range(num_epochs)):
             train_loss, train_acc = self.run_epoch(dataloader=self.train_dataloader, train=True, optimizer=optimizer)
