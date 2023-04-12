@@ -2,7 +2,7 @@ from keras import layers, models, optimizers, callbacks
 from keras import backend as K
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
-from kormos.models import BatchOptimizedSequentialModel
+#from kormos.models import BatchOptimizedSequentialModel
 import pandas as pd
 from src.dataset import *
 
@@ -158,7 +158,8 @@ class Hartford:
         return history
 
     def get_accuracy(self):
-        print(self.model.evaluate(self.X['test'], self.y['test'], batch_size=128))
+        return self.model.evaluate(self.X['test'], self.y['test'], batch_size=128)[1]
+        # evaluate gives [L2 loss, soft acc]
 
 
 if __name__ == '__main__':

@@ -80,7 +80,9 @@ class Vanilla_nn:
     def get_accuracy(self):
         print("Evaluating on 128 batch size",self.model.evaluate(self.X['test'],self.y['test'],batch_size=128))
         y_predicted = self.model.predict(self.X['test']).flatten()
-        print("The accuracy on the test set is ",(np.sum(np.round(y_predicted) == self.y['test']))/len(self.y['test']))
+        this_accuracy = (np.sum(np.round(y_predicted) == self.y['test']))/len(self.y['test'])
+        print("The accuracy on the test set is ", this_accuracy)
+        return this_accuracy
         
 
     def get_model(self):
@@ -96,7 +98,7 @@ class Vanilla_nn:
         '''
         if self.output_tag is None:
             self.output_tag = 'vanilla_nn_' + self.dataset.projections_file
-        log_dir =  TENSORBOARD_DIR.joinpath(self.output_tag)
+        log_dir = TENSORBOARD_DIR.joinpath(self.output_tag)
 
         history = self.model.fit(
             self.X['train'], self.y['train'],
@@ -120,5 +122,5 @@ class Vanilla_nn:
 if __name__ == '__main__':
     dataset = KreuzerSkarkeDataset(load_projections=True, projections_file='original')
     vanillann = Vanilla_nn(dataset)
-    vanillann.train(num_epochs=1)
+    vanillann.train(num_epochs=20)
     print(vanillann.get_accuracy())
