@@ -9,7 +9,7 @@ from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data.sampler import SubsetRandomSampler
-
+import pandas as pd
 
 class PointNetLayer(MessagePassing):
     def __init__(self, in_channels, out_channels):
@@ -223,9 +223,14 @@ class PointNet():
             pred = self.model(data.pos, data.batch, data.edge_index)
             pred = np.argmax(pred.detach().cpu().numpy(), axis=1)
             preds.append(pred)
-            truth.appends(data.y.detach().cpu().numpy())
+            truth.append(data.y.detach().cpu().numpy())
             
-        return preds, truth
+        if self.output_tag is None:
+            self.output_tag = 'pointnet_' + self.dataset.projections_file
+
+        saved_confm_path = SAVED_RESULTS_DIR.joinpath(self.output_tag + '_confmatrix.png')
+            
+        return preds, truth, saved_confm_path
 
     def train(
             self,

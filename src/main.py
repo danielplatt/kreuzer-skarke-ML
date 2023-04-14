@@ -3,6 +3,7 @@ import argparse
 from src.models import *
 from src.dataset import *
 from config.constants import *
+from utils.confusion_matrix import confusion_matrix
 
 # --- Helper function ---
 
@@ -53,7 +54,6 @@ dataset = args['dataset'].lower().strip()
 assert dataset in ALL_DATASETS
 
 dataset = KreuzerSkarkeDataset(load_projections=True, projections_file=dataset)
-print(len(dataset.X), dataset.X[0].shape)
 model = create_model(args, dataset)
 
 # --- Trigger training/evaluation ---
@@ -62,3 +62,5 @@ if not args['eval']:
     model.train(num_epochs=args['num_epochs'])
 else:
     model.get_accuracy()
+    preds, truth, confm_path = model.get_predictions()
+    confusion_matrix(list(np.hstack(preds)), list(np.hstack(truth)), confm_path)
