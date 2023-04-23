@@ -45,7 +45,7 @@ class PointNetModel(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-        torch.manual_seed(12345)
+        #torch.manual_seed(12345)
         self.conv1 = PointNetLayer(4, 50)
         self.conv2 = PointNetLayer(50, 100)
         self.conv3 = PointNetLayer(100, 100)
