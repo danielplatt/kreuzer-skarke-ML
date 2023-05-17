@@ -62,5 +62,7 @@ if not args['eval']:
     model.train(num_epochs=args['num_epochs'])
 else:
     model.get_accuracy()
-    preds, truth, confm_path = model.get_predictions()
-    confusion_matrix(list(np.hstack(preds)), list(np.hstack(truth)), confm_path)
+    if args['model'].lower().strip() == "pointnet":
+        preds, truth, confm_path = model.get_predictions()
+        confusion_matrix(list(np.hstack(preds)), list(np.hstack(truth)), confm_path)
+
