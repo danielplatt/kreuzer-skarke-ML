@@ -22,4 +22,8 @@ ALL_DATASETS = [
 ALL_MODELS = [
     'invariantmlp',
     'hartford',
+    'xgboost',
+    'vanilla_nn',
+    'vision_transformer',
+    'pointnet',
 ]
