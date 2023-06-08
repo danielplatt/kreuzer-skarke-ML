@@ -58,7 +58,11 @@ some entries are malformed, such as the following, which is copied verbatim from
 -1 0 1 1 
 ```
 ## How to run this repository (new)
-```src/main.py``` is the entry script. Use below command to get information on different flags.   
+1. Install dependencies using below command:
+
+```pip install -r requirements.txt```
+
+2. ```src/main.py``` is the entry script. Use below command to get information on different flags and how to run it:   
 
 ```python src/main.py --help```
 
@@ -86,9 +90,12 @@ optional arguments:
 ```python src/main.py 'original' 'invariantmlp' --output_tag='invariantmlp_original' --num_epochs=20```
 
 (for me worked: ```python -m src.main.py 'original' 'invariantmlp' --output_tag='invariantmlp_original' --num_epochs=20```)
-for xgboost: ```python -m src.main 'original' 'xgboost' --output_tag='xgboost_original' --num_epochs=20```
-for vision transformer: ```python -m src.main 'original' 'vision_transformer' --output_tag='vision_original' --num_epochs=1```
-for vanilla cnn: ```python -m src.main 'original' 'vanilla_nn' --output_tag='vanilla_nn_original' --num_epochs=20```
+
+For xgboost: ```python -m src.main 'original' 'xgboost' --output_tag='xgboost_original' --num_epochs=20```
+
+For vision transformer: ```python -m src.main 'original' 'vision_transformer' --output_tag='vision_original' --num_epochs=1```
+
+For vanilla cnn: ```python -m src.main 'original' 'vanilla_nn' --output_tag='vanilla_nn_original' --num_epochs=20```
 
 ### Evaluate
 
@@ -99,7 +106,9 @@ For XGBoost:  ```python src/main.py 'dirichlet' 'xgboost' --output_tag='small_di
 
 ### Tensorboard Visualization
 
-Tensorborad visualizations are supported for training/validation loss and accuracy. All the runs are stored under ```data/runs/tensorboard```. Use below command to launch tensorboard.  
+Tensorborad visualizations are supported for training/validation loss and accuracy. All the runs are stored under ```data/runs/tensorboard```. 
+
+Use below command to launch tensorboard:  
 
 ```tensorboard --logdir=data/runs/tensorboard --port=9009```
 

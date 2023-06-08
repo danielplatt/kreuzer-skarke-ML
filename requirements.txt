@@ -1,0 +1,13 @@
+keras==2.12.0
+matplotlib==3.7.1
+numpy==1.24.2
+pandas==2.0.2
+scikit_learn==1.2.2
+seaborn==0.12.2
+tensorboardX==2.6
+tensorflow==2.12.0
+tensorflow_addons==0.20.0
+torch==2.0.1
+torch_cluster==1.6.1
+torch_geometric==2.3.0
+tqdm==4.64.0
