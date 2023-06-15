@@ -109,21 +109,13 @@ options:
 
 ```python -m src.main.py <dataset> <model> --output_tag=<output_tag> --num_epochs=20```
 
-`<dataset>` is the dataset used, selected from [ 'original', 'original_permuted', 'dirichlet', 'dirichlet_permuted' ]
+`<dataset>`: dataset used, selected from [ 'original', 'original_permuted', 'dirichlet', 'dirichlet_permuted' ]
 
-`<model>` is the model used, selected from [ 'invariantmlp', 'hartford', 'xgboost', 'vanilla_nn', 'vision_transformer', 'pointnet' ] 
+`<model>`: model used, selected from [ 'invariantmlp', 'hartford', 'xgboost', 'vanilla_nn', 'vision_transformer', 'pointnet' ] 
 
-`<output_tag>` is the name used to save model output. 
+`<output_tag>`: name used to save model output. 
 
-Examples:
-
-For invariant mlp: ```python -m src.main.py 'original' 'invariantmlp' --output_tag='invariantmlp_original' --num_epochs=20```)
-
-For xgboost: ```python -m src.main 'original' 'xgboost' --output_tag='xgboost_original' --num_epochs=20```
-
-For vision transformer: ```python -m src.main 'original' 'vision_transformer' --output_tag='vision_original' --num_epochs=1```
-
-For vanilla cnn: ```python -m src.main 'original' 'vanilla_nn' --output_tag='vanilla_nn_original' --num_epochs=20```
+For XGBoost: ```python -m src.main 'original' 'xgboost' --output_tag='xgboost_original' --num_epochs=20```
 
 ### Evaluate
 
