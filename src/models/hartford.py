@@ -124,7 +124,7 @@ class Hartford:
         return self.model
 
     def train(self, save_csv: bool = True,
-            num_epochs: int = 20):
+            num_epochs: int = 300):
         '''
         Trains the neural network with "Hartford et al" architecture and prescribed hyperparameters
 
@@ -134,14 +134,15 @@ class Hartford:
 
         if self.output_tag is None:
             self.output_tag = 'hartford_' + self.dataset.projections_file
-        log_dir =  TENSORBOARD_DIR.joinpath(self.output_tag)      
+        log_dir = TENSORBOARD_DIR.joinpath(self.output_tag)
         history = self.model.fit(
             x=self.X['train'],
             y=self.y['train'],
             batch_size=self.batch_size,
             epochs=num_epochs,
             validation_data=(self.X['test'], self.y['test']),
-            callbacks=[callbacks.TensorBoard(log_dir=log_dir)],#tensorboard_callback
+            callbacks=[callbacks.TensorBoard(log_dir=log_dir),
+                       callbacks.EarlyStopping(monitor="loss", patience=12, verbose=1, restore_best_weights=True)],
         )
         if self.output_tag is not None:
             saved_model_path = SAVED_MODELS_DIR.joinpath(self.output_tag + '.h5')
@@ -154,7 +155,6 @@ class Hartford:
             print('Saving results as a csv in  %s' % saved_results_path)
             results_df.to_csv(saved_results_path)
 
-
         return history
 
     def get_accuracy(self):
@@ -165,5 +165,5 @@ class Hartford:
 if __name__ == '__main__':
     dataset = KreuzerSkarkeDataset(load_projections=True, projections_file='original')
     hardy = Hartford(dataset)
-    hardy.train(num_epochs=1)
+    hardy.train(num_epochs=300)
     print(hardy.get_accuracy())
