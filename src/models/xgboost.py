@@ -36,7 +36,6 @@ class TensorBoardCallback(xgb.callback.TrainingCallback):
         return False
 
 
-
 def reg_accuracy(predt: np.ndarray, dtrain: xgb.DMatrix) -> List[Tuple[str, float]]:
     ''' Root mean squared log error metric.'''
     y_true = dtrain.get_label()
@@ -91,7 +90,7 @@ class XGboost:
 
     
     def train(self, save_csv: bool = True,
-            num_epochs: int = 20):
+            num_epochs: int = 50000):
         '''
         Trains the neural network with "Hartford et al" architecture and prescribed hyperparameters
 
@@ -107,11 +106,14 @@ class XGboost:
         results: Dict[str, Dict[str, List[float]]] = {}
         if self.output_tag is None:
             self.output_tag = 'xgb_' + self.dataset.projections_file
-        
+        early_stop = xgb.callback.EarlyStopping(rounds=100,
+                                        metric_name='Tweedie-Loss',
+                                        data_name='train')
         self.model= xgb.train(params, dtrain, num_boost_round=num_epochs, custom_metric=reg_accuracy, evals=[(dtrain,'train'),
-                (dtest,'dtest')], callbacks = [TensorBoardCallback(self.output_tag)],evals_result=results
+                (dtest,'test')], callbacks = [TensorBoardCallback(self.output_tag),early_stop],evals_result=results
                 )
-                
+        
+
         if self.output_tag is not None:
           saved_model_path = SAVED_MODELS_DIR.joinpath(self.output_tag + '.json')
           print('Saving final model checkpoint to %s for %d boosting rounds(number of estimators) ' % (saved_model_path, num_epochs))
