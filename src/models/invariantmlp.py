@@ -82,7 +82,7 @@ class InvariantMLP():
         if load_saved_model:
             assert output_tag is not None
             saved_model_path = SAVED_MODELS_DIR.joinpath(output_tag + '.pt')
-            self.model.load_state_dict(torch.load(saved_model_path)['model_state_dict'])
+            self.model.load_state_dict(torch.load(saved_model_path))
 
         self.train_dataloader, self.val_dataloader = self._create_dataloaders()
         self.loss_fn = torch.nn.CrossEntropyLoss()
