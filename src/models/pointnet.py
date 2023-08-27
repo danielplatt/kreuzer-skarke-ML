@@ -75,6 +75,24 @@ class PointNetModel(torch.nn.Module):
         
         # 5. Classifier.
         return self.classifier(h)
+
+class EarlyStopper:
+    def __init__(self, patience=1, min_delta=0):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.counter = 0
+        self.min_validation_loss = np.inf
+
+    def early_stop(self, validation_loss):
+        if validation_loss < self.min_validation_loss:
+            self.min_validation_loss = validation_loss
+            self.counter = 0
+        elif validation_loss > (self.min_validation_loss + self.min_delta):
+            self.counter += 1
+            if self.counter >= self.patience:
+                return True
+        return False
+
     
 class PointNet():
     def __init__(
@@ -105,6 +123,7 @@ class PointNet():
         self.model.to(self.device)
         self.dataset = dataset
         self.output_tag = output_tag
+        self.early_stopper = EarlyStopper(patience=15, min_delta=0.01)
 
         if load_saved_model:
             assert output_tag is not None
@@ -280,8 +299,8 @@ class PointNet():
             writer.add_scalars('accuracy/val', {self.output_tag: val_acc}, epoch)
             writer.flush()
 
-            if max_acc <= val_acc:
-                max_acc = val_acc
+            if max_acc <= train_acc:
+                max_acc = train_acc
                 print('Saving model checkpoint to %s for epoch %d' % (saved_model_path, epoch))
                 torch.save({
                     'epoch': epoch,
@@ -292,6 +311,9 @@ class PointNet():
                     'train_accuracy': train_acc,
                     'val_accuracy': val_acc,
                 }, saved_model_path)
+                
+            if self.early_stopper.early_stop(train_loss):             
+                break
 
         if save_csv:
             results_df = pd.DataFrame({
