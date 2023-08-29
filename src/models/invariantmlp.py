@@ -82,7 +82,7 @@ class InvariantMLP():
         if load_saved_model:
             assert output_tag is not None
             saved_model_path = SAVED_MODELS_DIR.joinpath(output_tag + '.pt')
-            self.model.load_state_dict(torch.load(saved_model_path)['model_state_dict'])
+            self.model.load_state_dict(torch.load(saved_model_path))
 
         self.train_dataloader, self.val_dataloader = self._create_dataloaders()
         self.loss_fn = torch.nn.CrossEntropyLoss()
@@ -162,11 +162,16 @@ class InvariantMLP():
         self.model.train()
         return acc
 
+    def save_checkpoint(self, model, path):
+        print('Saving model checkpoint to %s' % (path))
+        torch.save(model.state_dict(), path)
+
     def train(
             self,
             save_csv: bool = False,
             num_epochs: int = 20,
             learning_rate: float = 0.001,
+            patience: int = 12,
     ):
         """
         Trains model on given dataset. Also, saves model and logs data for tensorboard visualization
@@ -177,6 +182,8 @@ class InvariantMLP():
         :type num_epochs: int
         :param learning_rate: learning rate used in the optimizer
         :type learning_rate: float
+        :param patience: number of epochs with no improvemtent after which training stops
+        :type patience: int
         """
         if self.output_tag is None:
             self.output_tag = 'invariantmlp_' + self.dataset.projections_file
@@ -187,7 +194,7 @@ class InvariantMLP():
         writer = SummaryWriter(TENSORBOARD_DIR)
         optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
 
-        max_acc = 0
+        max_acc, counter = None, 0
         train_losses, val_losses, train_accuracies, val_accuracies = [], [], [], []
 
         for epoch in tqdm(range(num_epochs)):
@@ -208,18 +215,31 @@ class InvariantMLP():
             writer.add_scalars('accuracy/val', {self.output_tag: val_acc}, epoch)
             writer.flush()
 
-            if max_acc <= val_acc:
-                max_acc = val_acc
-                print('Saving model checkpoint to %s for epoch %d' % (saved_model_path, epoch))
-                torch.save({
-                    'epoch': epoch,
-                    'model_state_dict': self.model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'train_loss': train_loss,
-                    'val_loss': val_loss,
-                    'train_accuracy': train_acc,
-                    'val_accuracy': val_acc,
-                }, saved_model_path)
+            if max_acc is None:
+                max_acc = train_acc
+                self.save_checkpoint(self.model, saved_model_path)
+            elif train_acc < max_acc:
+                counter += 1
+                if counter >= patience:
+                    print('No improvement in training accuracy for %d epochs. Exiting training.'%(patience))
+                    break
+            else:
+                max_acc = train_acc
+                counter = 0
+                self.save_checkpoint(self.model, saved_model_path)
+
+            # if max_acc <= val_acc:
+            #     max_acc = val_acc
+            #     print('Saving model checkpoint to %s for epoch %d' % (saved_model_path, epoch))
+            #     torch.save({
+            #         'epoch': epoch,
+            #         'model_state_dict': self.model.state_dict(),
+            #         'optimizer_state_dict': optimizer.state_dict(),
+            #         'train_loss': train_loss,
+            #         'val_loss': val_loss,
+            #         'train_accuracy': train_acc,
+            #         'val_accuracy': val_acc,
+            #     }, saved_model_path)
 
         if save_csv:
             results_df = pd.DataFrame({
