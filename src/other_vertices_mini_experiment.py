@@ -95,7 +95,9 @@ def create_different_number_vertices_dataset():
 
 
 def main():
-    dataset = KreuzerSkarkeDataset(load_projections=True, projections_file='v24dirichlet')
+    # create_different_number_vertices_dataset()
+
+    dataset = KreuzerSkarkeDataset(load_projections=True, projections_file='v24dirichlet_permuted')
     X_proj, Y = dataset.X_proj, dataset.Y
     X_train, Y_train = dataset.X_train, dataset.Y_train
     X_test, Y_test = dataset.X_test, dataset.Y_test
@@ -105,6 +107,7 @@ def main():
     # original: loss: 0.4821 - soft_acc: 0.5520 - val_loss: 0.5272 - val_soft_acc: 0.5389
     # original permuted: loss: 2.3401 - soft_acc: 0.2680 - val_loss: 2.7440 - val_soft_acc: 0.2497
     # dirichlet: loss: 0.4203 - soft_acc: 0.5910 - val_loss: 0.4933 - val_soft_acc: 0.5620
+    # dirichlet permuted: loss: 0.5101 - soft_acc: 0.5507 - val_loss: 0.5643 - val_soft_acc: 0.5382
 
 if __name__ == '__main__':
     main()
