@@ -1,5 +1,62 @@
 # kreuzer-skarke-invariant-ML
 
+This repository contains the Python code pertaining to the experiments explained in the article "Group Invariant Machine Learning on the Kreuzer-Skarke Dataset" by Christian Ewert, Sumner Magruder, Vera Maiboroda, Yueyang Shen, Pragya Singh,Daniel Platt.
+
+## How to run this repository
+1. Install dependencies using below command:
+
+```pip install -r requirements.txt```
+
+2. ```src/main.py``` is the entry script. Use below command to get information on different flags and how to run it:   
+
+    
+```python -m src.main.py --help```
+
+Output:
+
+```commandline
+usage: -m [-h] [--output_tag OUTPUT_TAG] [--eval] [--num_epochs NUM_EPOCHS] dataset model
+
+positional arguments:
+  dataset               Dataset type. Should be from this list: original, original_permuted, combinatorial, combinatorial_permuted, dirichlet, dirichlet_permuted
+  model                 Model Type. Should be from this list: invariantmlp, hartford, xgboost, vanilla_nn, vision_transformer, pointnet
+
+options:
+  -h, --help            show this help message and exit
+  --output_tag OUTPUT_TAG
+                        Output tag used to save results or fetch saved results. Necessary if "--eval" flag is used (default: None)
+  --eval                If specified, returns validation accuracy of saved model under "--output_tag" (default: False)
+  --num_epochs NUM_EPOCHS
+                        Number of epochs for training (default: 20)
+```
+### Training
+
+```python -m src.main.py <dataset> <model> --output_tag=<output_tag> --num_epochs=20```
+
+`<dataset>`: dataset used, selected from [ 'original', 'original_permuted', 'dirichlet', 'dirichlet_permuted' ]
+
+`<model>`: model used, selected from [ 'invariantmlp', 'hartford', 'xgboost', 'vanilla_nn', 'vision_transformer', 'pointnet' ] 
+
+`<output_tag>`: name used to save model output. 
+
+For XGBoost: ```python -m src.main 'original' 'xgboost' --output_tag='xgboost_original' --num_epochs=20```
+
+### Evaluate
+
+```python src/main.py 'original' 'invariantmlp' --output_tag='invarinatmlp_original' --eval```
+
+For XGBoost:  ```python src/main.py 'dirichlet' 'xgboost' --output_tag='small_dirichlet' --eval```
+
+
+### Tensorboard Visualization
+
+Tensorborad visualizations are supported for training/validation loss and accuracy. All the runs are stored under ```data/runs/tensorboard```. 
+
+Use below command to launch tensorboard:  
+
+```tensorboard --logdir=data/runs/tensorboard --port=9009```
+
+
 ## The dataset
 
 The file v26.gz is taken from http://quark.itp.tuwien.ac.at/~kreuzer/V. It contains around 78,000 reflexive polytopes, each corresponding to a different Calabi-Yau 3-fold.
@@ -58,7 +115,7 @@ some entries are malformed, such as the following, which is copied verbatim from
 -1 0 1 1 
 ```
 
-### How to load pre-processed datasets
+## How to load pre-processed datasets
 
 For our experiments, we used four datasets:
 
@@ -78,56 +135,3 @@ dataset_name = 'original'
 dataset = KreuzerSkarkeDataset(load_projections=True, projections_file=dataset_name)
 ```
 
-## How to run this repository
-1. Install dependencies using below command:
-
-```pip install -r requirements.txt```
-
-2. ```src/main.py``` is the entry script. Use below command to get information on different flags and how to run it:   
-
-    
-```python -m src.main.py --help```
-
-Output:
-
-```commandline
-usage: -m [-h] [--output_tag OUTPUT_TAG] [--eval] [--num_epochs NUM_EPOCHS] dataset model
-
-positional arguments:
-  dataset               Dataset type. Should be from this list: original, original_permuted, combinatorial, combinatorial_permuted, dirichlet, dirichlet_permuted
-  model                 Model Type. Should be from this list: invariantmlp, hartford, xgboost, vanilla_nn, vision_transformer, pointnet
-
-options:
-  -h, --help            show this help message and exit
-  --output_tag OUTPUT_TAG
-                        Output tag used to save results or fetch saved results. Necessary if "--eval" flag is used (default: None)
-  --eval                If specified, returns validation accuracy of saved model under "--output_tag" (default: False)
-  --num_epochs NUM_EPOCHS
-                        Number of epochs for training (default: 20)
-```
-### Training
-
-```python -m src.main.py <dataset> <model> --output_tag=<output_tag> --num_epochs=20```
-
-`<dataset>`: dataset used, selected from [ 'original', 'original_permuted', 'dirichlet', 'dirichlet_permuted' ]
-
-`<model>`: model used, selected from [ 'invariantmlp', 'hartford', 'xgboost', 'vanilla_nn', 'vision_transformer', 'pointnet' ] 
-
-`<output_tag>`: name used to save model output. 
-
-For XGBoost: ```python -m src.main 'original' 'xgboost' --output_tag='xgboost_original' --num_epochs=20```
-
-### Evaluate
-
-```python src/main.py 'original' 'invariantmlp' --output_tag='invarinatmlp_original' --eval```
-
-For XGBoost:  ```python src/main.py 'dirichlet' 'xgboost' --output_tag='small_dirichlet' --eval```
-
-
-### Tensorboard Visualization
-
-Tensorborad visualizations are supported for training/validation loss and accuracy. All the runs are stored under ```data/runs/tensorboard```. 
-
-Use below command to launch tensorboard:  
-
-```tensorboard --logdir=data/runs/tensorboard --port=9009```
